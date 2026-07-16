@@ -311,25 +311,9 @@
     "></div>`;
     overlay.appendChild(resizeHandle);
 
-    // ===== iframe =====
-    let scriptDir = "";
-    try {
-      const scripts = document.querySelectorAll("script");
-      for (let i = 0; i < scripts.length; i++) {
-        const src = scripts[i].src || "";
-        if (src.indexOf("night-watch-forum") !== -1 || src.indexOf(MODULE_NAME) !== -1) {
-          scriptDir = src.substring(0, src.lastIndexOf("/"));
-          break;
-        }
-      }
-    } catch (e) {}
-
+    // ===== iframe：直接打开服务器网站 =====
     const frame = document.createElement("iframe");
-    if (scriptDir) {
-      frame.src = scriptDir + "/index.html";
-    } else {
-      frame.src = "scripts/extensions/third-party/night-watch-forum/index.html";
-    }
+    frame.src = settings.apiBaseUrl || "http://43.135.26.183:3000";
     frame.style.cssText = `
       flex: 1;
       width: 100%;
