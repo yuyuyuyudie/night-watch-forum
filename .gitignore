@@ -1,0 +1,4 @@
+后端/
+node_modules/
+*.db
+.env

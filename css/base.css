@@ -1,0 +1,257 @@
+/* ==========================================
+   全局默认
+   ========================================== */
+:root {
+  --sidebar-width: 340px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg, #c0c0c0);
+  color: var(--text, #1d1d1d);
+  font-family: "Noto Sans SC", sans-serif;
+}
+
+body { padding: 10px; }
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+button { cursor: pointer; }
+img { display: block; max-width: 100%; }
+
+#app {
+  color: var(--text);
+  background: var(--bg);
+  transition: 0.25s ease;
+}
+
+#app input,
+#app textarea,
+#app select {
+  color: var(--text);
+}
+
+#app a {
+  color: var(--blue-2);
+}
+
+.window-shell,
+.panel-box,
+.profile-card,
+.side-section,
+.thread-list-panel,
+.thread-detail-panel,
+.hero-card,
+.page,
+.status-console,
+.conversation-box {
+  box-shadow: var(--shadow-outset);
+}
+
+.retro-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 10px 12px;
+  background-color: var(--input-bg, var(--panel-2));
+  color: var(--text);
+  box-shadow: var(--shadow-inset);
+}
+
+.retro-input::placeholder { color: var(--muted); }
+
+.label {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-family: "Share Tech Mono", monospace;
+  letter-spacing: 1px;
+  box-shadow: var(--shadow-outset);
+  background: var(--panel);
+}
+
+.label.red   { color: #fff; background: var(--red); }
+.label.green { color: #fff; background: var(--green); }
+.label.amber { color: #fff; background: var(--amber); }
+
+.empty-tip { opacity: 0.7; font-size: 14px; }
+
+
+/* ==========================================
+   1. 经典 — 日间
+   ========================================== */
+.theme-classic.mode-day {
+  --bg: #c0c0c0;
+  --panel: #efefef;
+  --panel-2: #ffffff;
+  --input-bg: var(--panel-2);
+  --text: #1d1d1d;
+  --muted: #5a5a5a;
+  --line-light: #ffffff;
+  --line-dark: #7b7b7b;
+  --line-deep: #000000;
+  --blue: #000080;
+  --blue-2: #1084d0;
+  --green: #16a34a;
+  --gray: #8c8c8c;
+  --red: #b91c1c;
+  --amber: #b45309;
+  --titlebar: linear-gradient(90deg, #000080, #1084d0);
+  --titlebar-text: #fff;
+  --shadow-outset:
+    inset 1.5px 1.5px 0 #ffffff,
+    inset -1.5px -1.5px 0 #7b7b7b,
+    1px 1px 0 #000000;
+  --shadow-inset:
+    inset 1.5px 1.5px 0 #7b7b7b,
+    inset -1.5px -1.5px 0 #ffffff;
+}
+
+/* ==========================================
+   2. 经典 — 夜间（守夜人绿色）
+   ========================================== */
+.theme-classic.mode-night {
+  --bg: #0c1210;
+  --panel: #111a14;
+  --panel-2: #162019;
+  --input-bg: var(--panel-2);
+  --text: #34d399;
+  --muted: #78c8aa;
+  --line-light: #1a2a1e;
+  --line-dark: #060a07;
+  --line-deep: #000000;
+  --blue: #042a17;
+  --blue-2: #0b6031;
+  --green: #34d399;
+  --gray: #6b7280;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --titlebar: linear-gradient(90deg, #05250f, #0c5422);
+  --titlebar-text: #b7ffd8;
+  --shadow-outset:
+    inset 1.5px 1.5px 0 #1a2a1e,
+    inset -1.5px -1.5px 0 #060a07,
+    1px 1px 0 #000000;
+  --shadow-inset:
+    inset 1.5px 1.5px 0 #060a07,
+    inset -1.5px -1.5px 0 #1a2a1e;
+}
+
+/* ==========================================
+   3. 樱花 — 日间（草莓牛奶蜜桃粉）
+   ========================================== */
+.theme-sakura.mode-day {
+  --bg: #fbcfe8;
+  --panel: #fff1f2;
+  --panel-2: #ffffff;
+  --input-bg: var(--panel);
+  --text: #831843;
+  --muted: #db2777;
+  --line-light: #ffffff;
+  --line-dark: #f472b6;
+  --line-deep: #be185d;
+  --blue: #ec4899;
+  --blue-2: #db2777;
+  --green: #2e7d32;
+  --gray: #9e9e9e;
+  --red: #e11d48;
+  --amber: #f59e0b;
+  --titlebar: linear-gradient(90deg, #ec4899, #fbcfe8);
+  --titlebar-text: #ffffff;
+  --shadow-outset:
+    inset 1.5px 1.5px 0 #ffffff,
+    inset -1.5px -1.5px 0 #f472b6,
+    1px 1px 0 #be185d;
+  --shadow-inset:
+    inset 1.5px 1.5px 0 #f472b6,
+    inset -1.5px -1.5px 0 #ffffff;
+}
+
+/* ==========================================
+   4. 樱花 — 夜间（Y2K赛博霓虹极光粉）
+   ========================================== */
+.theme-sakura.mode-night {
+  --bg: #2d0b1a;
+  --panel: #1a0410;
+  --panel-2: #14020c;
+  --input-bg: var(--panel-2);
+  --text: #ff71ce;
+  --muted: #db2777;
+  --line-light: #5c1334;
+  --line-dark: #19020a;
+  --line-deep: #000000;
+  --blue: #01cdfe;
+  --blue-2: #ff71ce;
+  --green: #66bb6a;
+  --gray: #757575;
+  --red: #f43f5e;
+  --amber: #ffa726;
+  --titlebar: linear-gradient(90deg, #881337, #db2777);
+  --titlebar-text: #ffffff;
+  --shadow-outset:
+    inset 1.5px 1.5px 0 #5c1334,
+    inset -1.5px -1.5px 0 #19020a,
+    1px 1px 0 #000000;
+  --shadow-inset:
+    inset 1.5px 1.5px 0 #19020a,
+    inset -1.5px -1.5px 0 #5c1334;
+}
+
+
+/* ==========================================
+   夜间模式通用
+   ========================================== */
+.mode-night ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.mode-night ::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+.mode-night ::-webkit-scrollbar-thumb {
+  background: var(--line-light);
+  border-radius: 4px;
+}
+.mode-night ::-webkit-scrollbar-thumb:hover {
+  background: var(--green);
+}
+
+.mode-night * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-light) var(--bg);
+}
+
+.mode-night input.retro-input,
+.mode-night input[type="text"],
+.mode-night input[type="password"],
+.mode-night input[type="search"],
+.mode-night textarea {
+  background-color: var(--input-bg, var(--panel-2)) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border: none !important;
+  box-shadow: var(--shadow-inset) !important;
+}
+
+.mode-night input::placeholder,
+.mode-night textarea::placeholder {
+  color: var(--muted) !important;
+}
+
+.mode-night ::selection {
+  background: var(--blue-2);
+  color: var(--titlebar-text);
+}
+
+
+.label.blue {
+  color: #fff;
+  background: var(--blue-2);
+}

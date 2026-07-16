@@ -1,0 +1,12 @@
+{
+  "spec": "1",
+  "name": "night-watch-forum",
+  "display_name": "守夜人论坛",
+  "version": "1.0.0",
+  "description": "龙族同人论坛 — 支持AI发帖、剧情同步、身份组",
+  "author": "冷雨",
+  "js": "index.js",
+  "css": "",
+  "requires": [],
+  "options": []
+}

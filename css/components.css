@@ -1,0 +1,2724 @@
+.win-btn,
+.retro-btn {
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  padding: 7px 12px;
+  box-shadow: var(--shadow-outset);
+  transition: transform 0.08s ease, filter 0.2s ease;
+}
+
+.win-btn:active,
+.retro-btn:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-inset);
+}
+
+.warn-btn,
+.retro-btn.warn {
+  color: #fff;
+  background: var(--red);
+}
+
+.retro-btn.ghost {
+  background: transparent;
+}
+
+.retro-btn.small {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.signal-dot,
+.status-dot,
+.blink {
+  position: relative;
+}
+
+.signal-dot {
+  width: 10px;
+  height: 10px;
+  background: #00ff66;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #00ff66;
+}
+
+.status-dot {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--panel-2);
+}
+
+.status-dot.online {
+  background: #22c55e;
+}
+
+.status-dot.offline {
+  background: #9ca3af;
+}
+
+.board-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nav-tab {
+  border: none;
+  padding: 8px 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow-outset);
+}
+
+.nav-tab.active {
+  background: var(--panel-2);
+  font-weight: 700;
+}
+
+.profile-card,
+.side-section,
+.panel-box,
+.hero-card,
+.thread-list-panel,
+.thread-detail-panel {
+  background: var(--panel-2);
+  padding: 12px;
+}
+
+.profile-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar-shell {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+}
+
+.avatar-shell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: var(--shadow-inset);
+  background: var(--panel);
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.user-id,
+.user-status {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+  opacity: 1;
+}
+
+.profile-actions,
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.side-title,
+.panel-title {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.mini-list,
+.notice-feed,
+.thread-list,
+.thread-detail,
+.timeline,
+.message-list,
+.conversation-box,
+.status-console {
+  background: rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-inset);
+  padding: 10px;
+}
+
+.list-item,
+.friend-item,
+.group-item,
+.msg-item,
+.thread-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-outset);
+}
+
+.thread-item.active {
+  outline: 2px dashed var(--green);
+}
+
+.file-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.tag {
+  padding: 2px 6px;
+  box-shadow: var(--shadow-outset);
+  background: var(--panel);
+}
+
+.status-console {
+  white-space: pre-wrap;
+  min-height: 160px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+}
+
+.field-label {
+  display: block;
+  margin: 10px 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.toolbar-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .toolbar-row,
+  .profile-actions,
+  .btn-row,
+  .setting-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.forum-path-btn {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.forum-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.forum-board-switcher {
+  position: relative;
+}
+
+.board-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 260px;
+  z-index: 20;
+  background: var(--panel-2);
+  padding: 8px;
+  box-shadow: var(--shadow-outset);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.board-picker-item {
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  text-align: left;
+  padding: 10px;
+  box-shadow: var(--shadow-outset);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.forum-pinned-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 10px;
+  margin-bottom: 0;
+  background: var(--panel);
+  box-shadow: var(--shadow-outset);
+}
+
+.forum-pinned-type {
+  font-size: 12px;
+  padding: 2px 6px;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-inset);
+}
+
+.thread-card {
+  padding: 12px;
+  margin-bottom: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow-outset);
+  cursor: pointer;
+}
+
+.thread-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.thread-card-summary {
+  line-height: 1.7;
+  color: var(--text);
+  opacity: 0.92;
+  margin-bottom: 10px;
+}
+
+.thread-card-meta,
+.thread-card-stats,
+.board-select-meta,
+.comment-footer,
+.comment-header {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.thread-card-stats {
+  margin-top: 8px;
+}
+
+.thread-actions-bar {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.thread-actions-left,
+.thread-actions-right {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.thread-action-btn {
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 10px;
+  box-shadow: var(--shadow-outset);
+}
+
+.comment-item {
+  padding: 10px;
+  margin-top: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow-outset);
+}
+
+.comment-author {
+  font-weight: 700;
+}
+
+.lz-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #2f6bff;
+  color: #fff;
+  font-size: 11px;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.comment-quote {
+  margin-top: 8px;
+  width: 100%;
+  border: none;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--text);
+  text-align: left;
+  padding: 10px;
+  box-shadow: var(--shadow-inset);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.comment-quote span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.comment-text {
+  margin-top: 10px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.comment-reply-btn {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.comment-editor {
+  margin-top: 16px;
+}
+
+.reply-target-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-inset);
+}
+
+.comment-textarea {
+  min-height: 110px;
+  width: 100%;
+  resize: vertical;
+}
+
+.forum-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.forum-board-drawer-row {
+  position: relative;
+  margin-bottom: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.board-drawer-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 12px;
+}
+
+.board-drawer-arrow {
+  opacity: 0.75;
+}
+
+.board-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 0;
+  z-index: 20;
+  background: var(--panel-2);
+  padding: 8px;
+  box-shadow: var(--shadow-outset);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.board-picker-item.compact {
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  text-align: left;
+  padding: 10px 8px;
+  box-shadow: var(--shadow-outset);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 72px;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.board-picker-item.compact span:first-child {
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.board-picker-item.compact span:last-child {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.forum-breadcrumb-sep {
+  margin: 0 6px;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.forum-path-current {
+  font-family: "Share Tech Mono", monospace;
+  opacity: 0.88;
+}
+
+.thread-feed-card {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.thread-card-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.thread-author-avatar {
+  width: 76px;
+  height: 76px;
+  object-fit: cover;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-inset);
+}
+
+.thread-author-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.thread-author-time {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: "Share Tech Mono", monospace;
+}
+
+.thread-card-right {
+  min-width: 0;
+}
+
+
+
+.thread-first-tag,
+.thread-pin-mark,
+.thread-detail-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-family: "Share Tech Mono", monospace;
+  box-shadow: var(--shadow-outset);
+  background: var(--panel);
+}
+
+.thread-first-tag {
+  color: #fff;
+  background: #d18a00;
+}
+
+.thread-pin-mark {
+  color: #fff;
+  background: #4b5563;
+}
+
+.thread-card.is-pinned {
+  outline: 1px solid var(--line-dark);
+}
+
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.thread-tags-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.thread-detail-author-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.thread-detail-author-avatar {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-inset);
+}
+
+.thread-detail-author-meta {
+  min-width: 0;
+}
+
+.thread-detail-author-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.thread-detail-author-submeta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-family: "Share Tech Mono", monospace;
+  color: var(--muted);
+}
+
+.comment-item {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.comment-avatar-col {
+  display: flex;
+  justify-content: center;
+}
+
+.comment-avatar {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-inset);
+}
+
+.comment-main-col {
+  min-width: 0;
+}
+
+.forum-pinned-link {
+  width: 100%;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.forum-breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.forum-breadcrumb-left {
+  min-width: 0;
+  flex: 1;
+}
+
+.forum-breadcrumb-right {
+  width: 320px;
+  max-width: 42%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.forum-top-search {
+  width: 100%;
+  min-width: 180px;
+  background-color: var(--input-bg, var(--panel-2)) !important;
+  background-image: none !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line-dark) !important;
+  box-shadow: var(--shadow-inset) !important;
+  caret-color: var(--text);
+}
+
+.forum-top-search::placeholder {
+  color: var(--muted) !important;
+}
+
+.forum-top-search:focus {
+  background-color: var(--input-bg, var(--panel-2)) !important;
+  border-color: var(--blue-2) !important;
+  outline: none;
+}
+
+/* 防止浏览器把已经填写过的搜索框染成淡蓝色 */
+.forum-top-search:-webkit-autofill,
+.forum-top-search:-webkit-autofill:hover,
+.forum-top-search:-webkit-autofill:focus,
+.forum-top-search:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text) !important;
+  background-color: var(--input-bg, var(--panel-2)) !important;
+  background-image: none !important;
+
+  -webkit-box-shadow:
+    0 0 0 1000px var(--input-bg, var(--panel-2)) inset,
+    var(--shadow-inset) !important;
+
+  box-shadow:
+    0 0 0 1000px var(--input-bg, var(--panel-2)) inset,
+    var(--shadow-inset) !important;
+
+  transition: background-color 9999s ease-out 0s;
+}
+
+.thread-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+
+.thread-card-title-row .thread-card-title {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.thread-card.is-pinned {
+  background: linear-gradient(
+    180deg,
+    rgba(209, 138, 0, 0.12) 0%,
+    rgba(209, 138, 0, 0.04) 100%
+  );
+  outline: 1px solid rgba(177, 120, 0, 0.65);
+}
+
+.thread-card.is-pinned .thread-card-title {
+  color: var(--amber);
+}
+
+.mode-night .thread-card.is-pinned .thread-card-title {
+  color: var(--amber);
+}
+
+.mode-night .thread-card.is-pinned {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--amber) 16%, transparent) 0%,
+    color-mix(in srgb, var(--amber) 6%, transparent) 100%
+  );
+  outline: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+.forum-pinned-link {
+  position: relative;
+}
+
+.forum-pinned-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: rgba(177, 120, 0, 0.8);
+}
+
+.mode-night .forum-pinned-link::before {
+  background: color-mix(in srgb, var(--amber) 85%, transparent);
+}
+
+.thread-feed-card {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 14px 12px;
+}
+
+.thread-card-left {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.thread-author-avatar {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-inset);
+}
+
+.thread-card-right {
+  min-width: 0;
+}
+
+.thread-card-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.thread-author-inline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.thread-time-inline {
+  font-size: 13px;
+}
+
+.thread-meta-divider {
+  opacity: 0.65;
+}
+
+.thread-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+
+.thread-card-title-row .thread-card-title {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.thread-first-tag,
+.thread-pin-mark,
+.thread-detail-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  font-size: 13px;
+  line-height: 1;
+  font-family: "Share Tech Mono", monospace;
+  box-shadow: var(--shadow-outset);
+  background: var(--panel);
+  white-space: nowrap;
+}
+
+.thread-first-tag {
+  color: #fff;
+  background: #d18a00;
+}
+
+.thread-pin-mark {
+  color: #fff;
+  background: #4b5563;
+}
+
+.thread-card-summary {
+  line-height: 1.75;
+  font-size: 15px;
+  color: var(--text);
+  opacity: 0.94;
+  margin-bottom: 10px;
+}
+
+.thread-card-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 14px;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.thread-card-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.thread-card.is-pinned {
+  background: linear-gradient(
+    180deg,
+    rgba(209, 138, 0, 0.12) 0%,
+    rgba(209, 138, 0, 0.04) 100%
+  );
+  outline: 1px solid rgba(177, 120, 0, 0.65);
+}
+
+.thread-card.is-pinned .thread-card-title {
+  color: var(--amber);
+}
+
+.mode-night .thread-card.is-pinned {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--amber) 16%, transparent) 0%,
+    color-mix(in srgb, var(--amber) 6%, transparent) 100%
+  );
+  outline: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+.mode-night .thread-card.is-pinned .thread-card-title {
+  color: var(--amber);
+}
+
+.thread-feed-card {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 14px 12px;
+}
+
+.thread-card-left {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.thread-author-avatar {
+  width: 66px;
+  height: 66px;
+  object-fit: cover;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-inset);
+}
+
+.thread-card-right {
+  min-width: 0;
+}
+
+.thread-card-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.thread-author-inline {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.thread-time-inline {
+  font-size: 13px;
+}
+
+.thread-meta-divider {
+  opacity: 0.65;
+}
+
+.thread-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+
+.thread-card-title-row .thread-card-title {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 25px;
+  line-height: 1.28;
+  font-weight: 700;
+}
+
+.thread-first-tag,
+.thread-detail-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  font-size: 15px;
+  line-height: 1;
+  font-family: "Share Tech Mono", monospace;
+  box-shadow: var(--shadow-outset);
+  background: var(--panel);
+  white-space: nowrap;
+}
+
+.thread-first-tag {
+  color: #fff;
+  background: #d18a00;
+  min-height: 30px;
+}
+
+.thread-card-summary {
+  line-height: 1.75;
+  font-size: 15px;
+  color: var(--text);
+  opacity: 0.95;
+  margin-bottom: 10px;
+}
+
+.thread-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  font-size: 15px;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.thread-card-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.thread-pin-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  font-size: 16px;
+  line-height: 1;
+  font-family: "Share Tech Mono", monospace;
+  white-space: nowrap;
+  box-shadow: var(--shadow-outset);
+  color: #fff;
+  background: #4b5563;
+}
+
+.thread-pin-mark-bottom {
+  margin-left: auto;
+}
+
+.thread-card.is-pinned {
+  background: linear-gradient(
+    180deg,
+    rgba(209, 138, 0, 0.12) 0%,
+    rgba(209, 138, 0, 0.04) 100%
+  );
+  outline: 1px solid rgba(177, 120, 0, 0.65);
+}
+
+.thread-card.is-pinned .thread-card-title {
+  color: var(--amber);
+}
+
+.mode-night .thread-card.is-pinned {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--amber) 16%, transparent) 0%,
+    color-mix(in srgb, var(--amber) 6%, transparent) 100%
+  );
+  outline: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+.mode-night .thread-card.is-pinned .thread-card-title {
+  color: var(--amber);
+}
+
+.author-display-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: "Share Tech Mono", monospace;
+  color: var(--blue);
+  background: var(--panel);
+  box-shadow: var(--shadow-outset);
+  vertical-align: middle;
+}
+
+.profile-group-tag.active-display {
+  outline: 1px dashed var(--blue);
+  font-weight: 700;
+}
+
+.thread-action-btn.active-like,
+.comment-reaction-btn.active-like {
+  color: #fff;
+  background: var(--green);
+}
+
+.thread-action-btn.active-dislike,
+.comment-reaction-btn.active-dislike {
+  color: #fff;
+  background: var(--red);
+}
+
+.comment-reaction-btn:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-inset);
+}
+
+.comment-reaction-btn {
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  padding: 5px 10px;
+  box-shadow: var(--shadow-outset);
+  font-size: 12px;
+}
+
+.comment-footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.comment-header-left,
+.comment-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.comment-header-right,
+.comment-footer-right {
+  margin-left: auto;
+  font-size: 12px;
+  font-family: "Share Tech Mono", monospace;
+  color: var(--muted);
+  text-align: right;
+}
+
+.comment-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.system-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--gray);
+  color: #fff;
+  font-size: 11px;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.comment-item.is-deleted .comment-text {
+  opacity: 0.65;
+  font-style: italic;
+}
+
+.comment-item.is-system {
+  border-left: 3px solid var(--blue-2);
+}
+
+.comment-item.is-system .comment-text {
+  color: var(--text);
+}
+
+.comment-avatar-col {
+  flex: 0 0 48px;
+}
+
+.comment-avatar {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-inset);
+}
+
+.comment-main-col {
+  min-width: 0;
+  flex: 1;
+}
+
+.comment-item.is-deleted {
+  opacity: 0.82;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.comment-item.is-deleted .comment-quote,
+.comment-item.is-deleted .comment-footer-left {
+  display: none;
+}
+
+.comment-item {
+  position: relative;
+  cursor: pointer;
+}
+
+.comment-action-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  max-width: 220px;
+  background: var(--panel-2);
+  box-shadow: var(--shadow-outset);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16), var(--shadow-outset);
+}
+
+.comment-action-item {
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 10px;
+  text-align: left;
+  box-shadow: var(--shadow-outset);
+}
+
+.comment-action-item.warn {
+  background: #7f1d1d;
+  color: #fff;
+}
+
+.comment-action-item.ghost {
+  background: transparent;
+}
+
+.comment-item:active {
+  filter: brightness(0.98);
+}
+
+.comment-item.is-deleted {
+  opacity: 0.7;
+  background: rgba(0, 0, 0, 0.04);
+  border-left: 3px solid #9ca3af;
+}
+
+.comment-item.is-deleted .comment-text {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.comment-item.is-deleted .comment-footer-left {
+  display: none;
+}
+
+.comment-item.is-deleted {
+  opacity: 0.72;
+  background: rgba(0, 0, 0, 0.04);
+  border-left: 3px solid #9ca3af;
+}
+
+.comment-item.is-deleted .comment-text {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.comment-item.is-deleted .comment-footer-left {
+  display: none;
+}
+
+.comment-item.is-deleted .comment-quote {
+  display: none;
+}
+
+.comment-item.is-deleted {
+  cursor: default;
+}
+
+.comment-quote.is-deleted {
+  opacity: 0.75;
+  border-left: 3px solid #9ca3af;
+}
+
+.comment-quote.is-deleted span {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.thread-action-btn.warn {
+  background: #7f1d1d;
+  color: #fff;
+}
+
+.profile-home-section-inline-tip {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  background: var(--panel);
+  box-shadow: var(--shadow-inset);
+}
+
+.author-name-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.author-name-text {
+  font-weight: 700;
+}
+
+.author-display-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 1px 6px;
+  border: 1px solid var(--blue);
+  background: var(--panel);
+  color: var(--blue);
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.75);
+}
+
+.mode-night .author-display-badge {
+  border-color: var(--blue-2);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.12);
+}
+
+.identity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+.badge-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+.thread-detail-panel {
+  position: relative;
+}
+
+.thread-share-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: stretch;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.thread-share-overlay[hidden] {
+  display: none !important;
+}
+
+.thread-share-sheet {
+  width: 100%;
+  max-width: none;
+  background: var(--panel-2, #1e1e1e);
+  color: var(--text, #f3f3f3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  padding: 14px 14px 16px;
+  box-sizing: border-box;
+}
+
+.thread-share-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.thread-share-sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.thread-share-close-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.8;
+}
+
+.thread-share-sheet-sub {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 12px;
+}
+
+.thread-share-avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 10px;
+  max-height: 220px;
+  overflow: auto;
+  padding-bottom: 4px;
+}
+
+.thread-share-avatar-item {
+  width: 72px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+
+.thread-share-avatar-wrap {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.thread-share-avatar-img,
+.thread-share-avatar-fallback {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: block;
+  object-fit: cover;
+  background: #333;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.thread-share-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.thread-share-avatar-tag {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.thread-share-avatar-name {
+  width: 100%;
+  font-size: 12px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+.thread-share-avatar-item:hover .thread-share-avatar-img,
+.thread-share-avatar-item:hover .thread-share-avatar-fallback {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.chat-comment-share-card .chat-thread-share-label {
+  opacity: 0.9;
+}
+
+/* 评论定位高亮：微微闪两下 */
+.comment-item.comment-flash {
+  animation: commentFlashTwice 1.4s ease;
+}
+
+@keyframes commentFlashTwice {
+  0% {
+    background: transparent;
+    box-shadow: none;
+  }
+  15% {
+    background: rgba(255, 214, 102, 0.22);
+    box-shadow: 0 0 0 1px rgba(255, 214, 102, 0.45);
+  }
+  30% {
+    background: transparent;
+    box-shadow: none;
+  }
+  45% {
+    background: rgba(255, 214, 102, 0.22);
+    box-shadow: 0 0 0 1px rgba(255, 214, 102, 0.45);
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+/* ===== 添加群聊卡片 ===== */
+.add-group-card {
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  opacity: 0.88;
+  cursor: pointer;
+}
+
+.add-group-card:hover {
+  opacity: 1;
+  filter: brightness(1.05);
+}
+
+.add-group-avatar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-group-plus {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+}
+
+/* ===== 添加群聊弹窗 ===== */
+.add-group-sheet {
+  padding: 8px 4px;
+}
+
+.add-group-choice {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.add-group-choice-btn {
+  flex: 1;
+  padding: 14px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.add-group-sheet-body {
+  padding-top: 4px;
+}
+
+/* ===== 创建群聊表单 ===== */
+.create-group-form,
+.join-group-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.create-group-row,
+.join-group-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.create-group-label,
+.join-group-label,
+.chat-settings-label {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.create-group-friend-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-inset, inset 0 1px 3px rgba(0,0,0,0.3));
+}
+
+.create-group-friend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 8px;
+  background: var(--panel, #1a1a1a);
+  box-shadow: var(--shadow-outset, 0 1px 0 rgba(255,255,255,0.1));
+}
+
+.create-group-friend-item input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.create-group-friend-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.create-group-friend-name {
+  font-size: 13px;
+}
+
+#confirmCreateGroupBtn,
+#confirmJoinGroupBtn {
+  align-self: flex-start;
+  padding: 10px 24px;
+}
+
+/* ===== 仿真实社交软件聊天设置 ===== */
+.im-settings {
+  padding: 0;
+  gap: 12px;
+}
+
+/* 顶部信息卡片 */
+.im-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--panel-2, #2a2a2a);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.im-profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.im-profile-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.im-profile-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.im-profile-sub {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.im-profile-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.im-tag-owner {
+  background: rgba(255, 193, 7, 0.2);
+  color: var(--amber);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+}
+
+.im-tag-manager {
+  background: rgba(33, 150, 243, 0.2);
+  color: var(--blue-2);
+  border: 1px solid rgba(33, 150, 243, 0.35);
+}
+
+.im-tag-member {
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 0.6;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 分组 */
+.im-section {
+  margin: 0;
+  background: var(--panel-2, #2a2a2a);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.im-section + .im-section {
+  margin-top: 10px;
+}
+
+.im-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 6px;
+}
+
+.im-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.im-section-count {
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+/* 行 */
+.im-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.12s;
+}
+
+.im-row:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.im-row-label {
+  font-size: 14px;
+}
+
+.im-row-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.75;
+}
+
+.im-row-text {
+  font-size: 13px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.im-row-arrow {
+  font-size: 18px;
+  opacity: 0.4;
+}
+
+.im-avatar-value {
+  opacity: 1;
+}
+
+.im-row-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* 展开编辑区 */
+.im-edit-area {
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.im-edit-area[hidden] {
+  display: none;
+}
+
+.im-avatar-edit-area {
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.12);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.im-avatar-edit-area[hidden] {
+  display: none;
+}
+
+.im-avatar-edit-area input {
+  flex: 1;
+}
+
+.group-notice-input {
+  flex: 1;
+  min-width: 200px;
+  min-height: 72px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* 群管理标签 */
+.im-manager-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.im-manager-tag {
+  font-size: 13px;
+  padding: 4px 12px;
+  background: rgba(33, 150, 243, 0.15);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.im-manager-tag:hover {
+  filter: brightness(1.15);
+}
+
+.im-add-manager-select {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* 成员列表 */
+.im-member-list {
+  padding: 4px 8px 8px;
+}
+
+.im-member-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.im-member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.im-member-name {
+  font-size: 14px;
+  flex: 1;
+}
+
+.im-member-role {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.im-role-owner {
+  background: rgba(255, 193, 7, 0.18);
+  color: var(--amber);
+}
+
+.im-role-manager {
+  background: rgba(33, 150, 243, 0.18);
+  color: var(--blue-2);
+}
+
+.im-role-normal {
+  background: rgba(255,255,255,0.06);
+  opacity: 0.5;
+}
+
+/* 开关 */
+.im-toggle-row {
+  cursor: default;
+}
+
+.im-toggle-row:hover {
+  background: transparent;
+}
+
+.im-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.im-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.im-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.15);
+  border-radius: 24px;
+  transition: 0.2s;
+}
+
+.im-switch-slider::before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #999;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.im-switch input:checked + .im-switch-slider {
+  background: #4caf50;
+}
+
+.im-switch input:checked + .im-switch-slider::before {
+  transform: translateX(20px);
+  background: #fff;
+}
+
+/* 危险区域 */
+.im-danger-section .im-row {
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.im-danger-text {
+  color: var(--red);
+}
+
+/* 邀请码显示 */
+.group-invite-code-display {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 22px;
+  letter-spacing: 6px;
+  padding: 12px 20px;
+  background: rgba(0,0,0,0.25);
+  text-align: center;
+  margin-top: 8px;
+  flex-basis: 100%;
+}
+
+/* 旧样式兼容（保留空壳防止别处引用报错） */
+.chat-settings-row { display: none; }
+.settings-section { display: none; }
+.settings-section-title { display: none; }
+.chat-settings-label { display: none; }
+.empty-tip-inline {
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+/* ===== 游客实名认证弹窗 ===== */
+.guest-verify-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 4px;
+}
+
+.guest-verify-tip {
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.8;
+  padding: 12px 14px;
+  background: rgba(33, 150, 243, 0.1);
+  border-left: 3px solid rgba(33, 150, 243, 0.5);
+}
+
+.guest-verify-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guest-verify-label {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.guest-verify-row input {
+  text-transform: none;
+}
+
+#confirmVerifyBtn {
+  align-self: flex-start;
+  padding: 12px 32px;
+  font-size: 15px;
+}
+
+#confirmVerifyBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== 游客实名认证弹窗 ===== */
+.guest-verify-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 4px;
+}
+
+.guest-verify-tip {
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.8;
+  padding: 12px 14px;
+  background: rgba(33, 150, 243, 0.1);
+  border-left: 3px solid rgba(33, 150, 243, 0.5);
+}
+
+.guest-verify-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guest-verify-label {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+#confirmVerifyBtn {
+  align-self: flex-start;
+  padding: 12px 32px;
+  font-size: 15px;
+}
+
+#confirmVerifyBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== 诺玛聊天气泡里的实名认证面板 ===== */
+
+.guest-verify-inline-panel {
+  min-width: 240px;
+  max-width: 360px;
+}
+
+.guest-verify-inline-panel .field-label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.guest-verify-inline-panel .retro-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.guest-verify-inline-panel button {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.guest-verify-result {
+  margin-top: 12px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-left: 3px solid currentColor;
+}
+
+.guest-verify-result[hidden] {
+  display: none;
+}
+
+.guest-verify-result.is-error {
+  color: var(--red);
+  background: rgba(214, 69, 69, 0.1);
+}
+
+.guest-verify-result.is-success {
+  color: var(--green);
+  background: rgba(35, 132, 71, 0.1);
+}
+
+.story-board-enable-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.story-board-enable-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: var(--panel, #eeeeee);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+}
+
+.story-board-enable-item input {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.story-board-enable-item span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.story-board-enable-item small {
+  opacity: 0.65;
+  line-height: 1.4;
+}
+.board-create-card {
+  width: 100%;
+  margin: 14px 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  border: 1px dashed var(--text);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow-outset);
+}
+
+.board-create-card span {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.board-create-card:hover {
+  filter: brightness(1.1);
+}
+
+.create-board-page {
+  padding: 16px;
+  background: var(--panel-2);
+}
+
+.create-board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.create-board-subtitle {
+  margin-top: 5px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.create-board-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 680px;
+}
+
+.create-board-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.create-board-result {
+  padding: 10px;
+  margin-top: 6px;
+  border-left: 3px solid var(--text);
+  line-height: 1.5;
+}
+
+.norma-prompt-entry-box {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--text);
+}
+
+.ai-account-help {
+  margin: 6px 0 12px;
+  font-size: 12px;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+.norma-prompt-entry-item {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--text);
+  background: var(--panel);
+  line-height: 1.5;
+}
+
+.norma-prompt-entry-title {
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.norma-prompt-entry-title span {
+  margin-left: 8px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.norma-prompt-entry-content {
+  margin: 8px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-setting-mark {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 4px;
+  border: 1px solid currentColor;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+/* ====== 聊天输入框排版：+ 输入框 [接收] [发送] ====== */
+.chat-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border, #ccc);
+  background: var(--panel);
+}
+
+/* 左边 + 号按钮 */
+.chat-plus-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border, #ccc);
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.chat-plus-btn:hover {
+  border-color: var(--accent, #1a73e8);
+  color: var(--accent, #1a73e8);
+}
+
+/* 中间输入框 */
+.chat-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 右边圆形按钮（接收 + 发送） */
+.chat-round-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+/* 接收按钮：蓝色圆圈 + 蓝色图标 */
+.chat-recv-btn {
+  background: rgba(26, 115, 232, 0.12);
+  color: var(--accent, #1a73e8);
+}
+
+.chat-recv-btn:hover {
+  background: rgba(26, 115, 232, 0.22);
+}
+
+/* 发送按钮：蓝色实心 */
+.chat-send-round {
+  background: var(--accent, #1a73e8);
+  color: #fff;
+}
+
+.chat-send-round:hover {
+  opacity: 0.85;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.chat-toolbar-extra {
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border, #ccc);
+  background: var(--panel);
+}
+
+.chat-extra-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border, #ccc);
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.chat-extra-btn:hover {
+  background: var(--panel);
+  border-color: var(--accent, #1a73e8);
+  color: var(--accent, #1a73e8);
+}
+
+/* 表情包消息 */
+.chat-sticker-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+.chat-sticker-msg .chat-bubble-other {
+  align-items: flex-start;
+}
+
+.chat-sticker-img {
+  max-width: 160px;
+  max-height: 160px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.chat-sticker-name {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+/* 图片描述消息 */
+.chat-image-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 240px;
+}
+
+.chat-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 120px;
+  height: 90px;
+  background: var(--panel-2, rgba(0,0,0,0.06));
+  border: 1px dashed var(--border, #ccc);
+  border-radius: 6px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.chat-image-desc {
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+/* 对方的消息也支持表情包和图片 */
+.chat-bubble-other.chat-sticker-msg,
+.chat-bubble-other.chat-image-msg {
+  align-items: flex-start;
+}
+
+/* ====== 正在输入动画 ====== */
+.chat-typing-indicator {
+  animation: typingBlink 1s infinite;
+}
+
+@keyframes typingBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ====== 表情包/图片内嵌面板 ====== */
+.chat-sticker-panel {
+  background: var(--panel-2, #f5f5f5);
+  border-top: 1px dashed var(--muted, #aaa);
+  max-height: 260px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sticker-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(128,128,128,0.15);
+}
+
+.sticker-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sticker-panel-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sticker-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.sticker-panel-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--muted, #888);
+  font-size: 12px;
+  padding: 16px 0;
+}
+
+.sticker-panel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.sticker-panel-item:hover {
+  background: rgba(128,128,128,0.12);
+}
+
+.sticker-panel-item.manage-mode {
+  outline: 2px dashed var(--red, #e74c3c);
+}
+
+.sticker-panel-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.sticker-panel-name {
+  font-size: 11px;
+  color: var(--muted, #888);
+  margin-top: 2px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 68px;
+}
+
+/* ====== API 预设列表 ====== */
+.api-preset-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* ====== 消息弹出动画（微信QQ风格） ====== */
+.chat-msg-anim {
+  animation: msgSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chat-row.me.chat-msg-anim {
+  animation: msgSlideRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chat-row.other.chat-msg-anim {
+  animation: msgSlideLeft 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes msgSlideLeft {
+  0% { opacity: 0; transform: translateX(-20px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes msgSlideRight {
+  0% { opacity: 0; transform: translateX(20px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* ====== 长按菜单 ====== */
+.chat-context-menu {
+  position: fixed;
+  z-index: 9999;
+  background: var(--panel-2, #fff);
+  box-shadow: var(--shadow-outset);
+  border: 1px solid var(--line-dark, #7b7b7b);
+  min-width: 120px;
+  padding: 4px 0;
+}
+
+.chat-ctx-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s;
+}
+
+.chat-ctx-item:hover {
+  background: var(--panel, #efefef);
+}
+
+.chat-ctx-danger {
+  color: var(--red, #b91c1c);
+}
+
+/* ====== 引用块 ====== */
+.chat-quote-block {
+  background: rgba(128,128,128,0.08);
+}
+
+/* ====== 开关按钮 ====== */
+.im-toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.im-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.im-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--line-dark, #7b7b7b);
+  box-shadow: var(--shadow-inset);
+  transition: background 0.2s;
+}
+
+.im-toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: var(--panel-2, #fff);
+  box-shadow: var(--shadow-outset);
+  transition: transform 0.2s;
+}
+
+.im-toggle input:checked + .im-toggle-slider {
+  background: var(--green, #16a34a);
+}
+
+.im-toggle input:checked + .im-toggle-slider::before {
+  transform: translateX(18px);
+}
+
+/* ====== 表情包删除按钮 ====== */
+.sticker-panel-item {
+  position: relative;
+}
+
+.sticker-delete-btn {
+  display: none;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: var(--red, #b91c1c);
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-outset);
+  z-index: 2;
+  padding: 0;
+}
+
+.sticker-panel-item.manage-mode .sticker-delete-btn {
+  display: block;
+}
+
+.sticker-panel-item.manage-mode {
+  opacity: 0.8;
+}
+
+.sticker-panel-item.manage-mode:hover {
+  opacity: 1;
+  outline: 2px solid var(--red, #b91c1c);
+}
+/* ====== 引用样式 ====== */
+.chat-quote-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--muted, #888);
+  background: rgba(128,128,128,0.06);
+  border-radius: 4px;
+  border-left: 3px solid var(--muted, #aaa);
+}
+
+.chat-quote-icon {
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--blue-2, #1084d0);
+}
+
+/* 引用预览条（输入框上方） */
+.chat-quote-preview {
+  background: var(--panel, #efefef);
+  border-bottom: 1px dashed var(--muted, #aaa);
+  padding: 6px 10px;
+  font-size: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chat-quote-preview-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-quote-preview-text {
+  flex: 1;
+  color: var(--muted, #888);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-quote-cancel-btn {
+  border: none;
+  background: none;
+  color: var(--red, #b91c1c);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+}

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>守夜人论坛</title>
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./css/base.css" />
+  <link rel="stylesheet" href="./css/layout.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/pages.css" />
+
+    <!-- 用户自定义 CSS -->
+  <style id="userCustomCss"></style>
+  <style id="userBubbleCss"></style>
+
+</head>
+<body>
+    <div id="app" class="theme-classic mode-night" style="display: none;">
+
+    <div class="window-shell">
+      <!-- 标题栏 -->
+      <header class="titlebar">
+        <div class="titlebar-left">
+          <span class="signal-dot"></span>
+        <span id="forumHomeBtn" class="title-text forum-home-btn">守夜人论坛 // NIGHT WATCH FORUM</span>
+
+        </div>
+        <div class="titlebar-right">
+  <button id="syncStoryBtn" class="win-btn">同步</button>
+<button id="themeToggleBtn" class="win-btn">DARK UI</button>
+
+  <div class="settings-menu-wrap">
+    <button id="settingsMenuBtn" class="win-btn" title="设置">⚙</button>
+    <div id="settingsDropdown" class="settings-dropdown">
+  <button id="openForumAiSettingsBtn" class="settings-item">论坛基础</button>
+  <button id="openBeautifyCenterBtn" class="settings-item">美化中心</button>
+  <button id="openAccountSettingsBtn" class="settings-item">账号设置</button>
+  <button id="logoutAccountBtn" class="settings-item">登出账户</button>
+</div>
+  </div>
+</div>
+
+      </header>
+
+      <!-- 菜单栏 -->
+      <div class="menubar">
+        <div class="menu-left">
+          <span>File</span>
+          <span>Edit</span>
+          <span>Boards</span>
+          <span>Messages</span>
+          <span>Security</span>
+          <span>Help</span>
+        </div>
+        <div class="menu-right">
+          <span class="tag">ENCRYPTED</span>
+          <span id="systemTime">--</span>
+        </div>
+      </div>
+
+      <!-- 面包屑 -->
+      <div class="breadcrumb forum-breadcrumb-bar">
+  <div id="forumBreadcrumb" class="forum-breadcrumb-left"></div>
+
+<div class="forum-breadcrumb-right forum-search-wrap">
+  <input
+  id="threadSearchInput"
+  class="retro-input forum-top-search"
+  type="search"
+  name="forum_keyword_search_box"
+  autocomplete="off"
+  autocapitalize="off"
+  autocorrect="off"
+  spellcheck="false"
+  data-lpignore="true"
+  data-1p-ignore="true"
+  data-form-type="other"
+  role="searchbox"
+  placeholder="搜索帖子 / 用户 / 学号..."
+  value=""
+/>
+
+</div>
+
+</div>
+       
+
+      <!-- 主体 -->
+      <main class="main-layout">
+        <!-- 左侧主内容 -->
+        <section class="content-panel">
+          <!-- 顶部导航 -->
+          
+          
+
+<div id="profileHomeOverlay" class="profile-home-overlay">
+  <div class="profile-home-window">
+    <div class="profile-home-header">
+      <div class="panel-title">个人主页</div>
+      <button id="closeProfileHomeBtn" class="win-btn">返回论坛</button>
+    </div>
+
+    <div class="profile-home-body">
+      <div class="profile-home-left">
+        <div
+          id="profileHomeAvatarBox"
+          class="profile-home-avatar-box"
+          title="单击查看头像大图，双击更换头像"
+        >
+          <img id="profileHomeAvatar" src="" alt="个人主页头像" />
+          <div class="profile-home-avatar-fallback">N/A</div>
+        </div>
+
+        <div id="profileHomeStatusText" class="profile-home-status">ONLINE</div>
+        <div class="profile-home-avatar-tip">单击查看大图 / 双击更换头像</div>
+      </div>
+
+      <div class="profile-home-right">
+        <h2 id="profileHomeName" class="profile-home-name">A.I. Observer</h2>
+        <div id="profileHomeCodeLine" class="profile-home-id">学号：AIMMDDXX</div>
+        <div id="profileHomeSignature" class="profile-home-signature">终端记录保持在线。</div>
+
+        <div id="profileGroupList" class="profile-group-list"></div>
+
+        <div class="profile-home-section">
+          <div class="panel-title">资料设置</div>
+
+          <label class="field-label">论坛 ID</label>
+          <input id="profileForumIdInput" class="retro-input" placeholder="输入论坛 ID" />
+
+          <label class="field-label">真名</label>
+          <input id="profileRealNameInput" class="retro-input" placeholder="你的真实姓名（非公开）" />
+
+          <label class="field-label">性别</label>
+          <input id="profileGenderInput" class="retro-input" placeholder="例如：女 / 男 / 未设定" />
+
+          <label class="field-label">个签</label>
+          <input id="profileSignatureInput" class="retro-input" placeholder="输入个性签名" />
+
+                    <label class="field-label">当前佩戴身份</label>
+          <select id="profileDisplayGroupInput" class="retro-input">
+            <option value="">不佩戴</option>
+          </select>
+
+          <div id="profileDisplayGroupPreview" class="display-group-preview"></div>
+
+          <div class="btn-row">
+            <button id="saveProfileBtn" class="retro-btn">保存资料</button>
+          </div>
+
+        </div>
+
+        
+        <div class="profile-home-section">
+          <div class="panel-title">身份说明</div>
+          <div class="profile-home-text">
+            未认证成员仅可浏览公开内容，无法参与互动。已认证成员可向诺玛或对应身份组发起申请，扩展更多身份权限。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="accountSettingsOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="profile-home-header">
+      <div class="panel-title">🔐 账号设置</div>
+      <button id="closeAccountSettingsBtn" class="win-btn">✕</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; padding:14px;">
+      <p style="margin:0; opacity:0.8;">修改你的登录访问码（至少4位，支持任何字符）</p>
+      <input id="acsStudentId" class="retro-input" placeholder="学号" readonly />
+      <input id="acsOldCode" class="retro-input" type="password" placeholder="当前访问码" />
+      <input id="acsNewCode" class="retro-input" type="password" placeholder="新访问码（至少4位）" />
+      <input id="acsConfirmCode" class="retro-input" type="password" placeholder="确认新访问码" />
+      <button id="acsSubmitBtn" class="retro-btn" style="background:var(--green); color:#fff;">确认修改</button>
+      <div id="acsMsg" style="font-size:13px; min-height:20px;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="dramaCodesOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <div class="profile-home-header">
+      <div class="panel-title">🎭 角色今日密码</div>
+      <button id="closeDramaCodesBtn" class="win-btn">✕</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; padding:14px;">
+      <div id="dramaCodesList" style="font-family:'Share Tech Mono',monospace; font-size:14px;"></div>
+      <button id="rotateCodesBtn" class="retro-btn warn" style="margin-top:8px;">立即重新生成</button>
+    </div>
+  </div>
+</div>
+
+<div id="socialMainOverlay" class="social-main-overlay" hidden>
+  <div class="social-main-window">
+    <div class="social-main-header">
+      <div>
+        <div id="socialMainTitle" class="panel-title">消息</div>
+        <div id="socialMainSub" class="social-main-sub">终端通信记录</div>
+      </div>
+      <button id="closeSocialMainBtn" class="win-btn">返回论坛</button>
+    </div>
+
+    <div id="socialMainBody" class="social-main-body"></div>
+  </div>
+</div>
+
+<div id="forumAiSettingsOverlay" class="social-main-overlay" hidden>
+  <div class="social-main-window forum-ai-settings-window">
+    <div class="social-main-header">
+      <div>
+        <div class="panel-title">论坛AI设置</div>
+        <div class="social-main-sub">总API / 世界书 / 论坛总提示词</div>
+      </div>
+      <button id="closeForumAiSettingsBtn" class="win-btn">返回论坛</button>
+    </div>
+
+    <div class="social-main-body forum-ai-settings-body">
+      <div class="forum-ai-section">
+        <div class="panel-title">用户总API</div>
+
+        <label class="field-label">API 地址</label>
+        <input id="forumApiBaseInput" class="retro-input" placeholder="例如：https://api.openai.com/v1/chat/completions" />
+
+        <label class="field-label">API Key</label>
+        <input id="forumApiKeyInput" class="retro-input" type="password" placeholder="输入你的 API Key" />
+
+        <label class="field-label">模型名</label>
+<input id="forumApiModelInput" class="retro-input" placeholder="可以手填，也可以点下方按钮拉取模型" />
+
+<label class="field-label">已拉取模型</label>
+<select id="forumModelSelect" class="retro-input">
+  <option value="">暂无模型，请先拉取</option>
+</select>
+
+<div class="btn-row">
+  <button id="saveForumApiBtn" class="retro-btn">保存API</button>
+  <button id="testForumApiBtn" class="retro-btn ghost">测试连接</button>
+  <button id="fetchForumModelsBtn" class="retro-btn ghost">拉取模型</button>
+</div>
+<div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+  <label class="field-label" style="margin:0;white-space:nowrap">同时存为预设（选填）：</label>
+  <input id="presetNameInput" class="retro-input" placeholder="填名字就自动存为预设，留空只保存API" style="flex:1" />
+</div>
+        <pre id="forumApiStatusBox" class="forum-ai-status">等待设置。</pre>
+      </div>
+
+
+      <div class="forum-ai-section">
+        <div class="panel-title">论坛总提示词</div>
+
+        <textarea
+          id="forumPromptInput"
+          class="retro-input forum-ai-textarea"
+          placeholder="写给整个论坛生成系统的总提示词。例如论坛风格、发帖规则、世界观限制、禁止事项……"
+        ></textarea>
+
+        <div class="btn-row">
+          <button id="saveForumPromptBtn" class="retro-btn">保存总提示词</button>
+        </div>
+      </div>
+
+      <div class="forum-ai-section">
+  <div class="panel-title">同步规则</div>
+
+  <label class="field-label">每次同步帖子数</label>
+  <input id="syncThreadCountInput" class="retro-input" type="number" min="1" max="10" />
+
+  <label class="field-label">每帖评论数</label>
+  <input id="syncCommentCountInput" class="retro-input" type="number" min="0" max="20" />
+
+  <label class="field-label">保留帖子数</label>
+  <input id="keepThreadCountInput" class="retro-input" type="number" min="1" max="200" />
+
+  <div class="btn-row">
+    <button id="saveSyncRulesBtn" class="retro-btn">保存同步规则</button>
+  </div>
+
+  <hr style="margin:12px 0;border:none;border-top:1px dashed var(--border,#ccc)" />
+
+  <label class="field-label">一键撤回</label>
+  <div class="forum-ai-help">
+    撤回最近一次同步生成的帖子和评论。不影响玩家自己发的帖子。
+  </div>
+  <div class="btn-row">
+    <button id="undoLastSyncBtn" class="retro-btn warn" type="button">撤回本次同步</button>
+  </div>
+</div>
+
+      <div class="forum-ai-section">
+        <div class="panel-title">API 预设管理</div>
+        <div class="forum-ai-help">
+          保存多套 API 配置，然后分配给不同用途（论坛同步、私聊角色、总结记忆）。
+        </div>
+
+        <div id="apiPresetList" class="api-preset-list"></div>
+
+        <hr style="margin:12px 0;border:none;border-top:1px dashed var(--border,#ccc)" />
+
+        <div class="panel-title" style="font-size:13px">分配用途</div>
+
+        <label class="field-label">论坛同步用哪套 API</label>
+        <select id="assignForumApi" class="retro-input">
+          <option value="">使用默认 API</option>
+        </select>
+
+        <label class="field-label">私聊角色用哪套 API</label>
+        <select id="assignPrivateChatApi" class="retro-input">
+          <option value="">使用默认 API</option>
+        </select>
+
+        <label class="field-label">总结记忆用哪套 API</label>
+        <select id="assignSummaryApi" class="retro-input">
+          <option value="">使用默认 API</option>
+        </select>
+
+        <div class="btn-row">
+          <button id="saveApiAssignmentsBtn" class="retro-btn">保存分配</button>
+        </div>
+        <pre id="apiPresetStatus" class="forum-ai-status">等待操作。</pre>
+      </div>
+
+      <div class="forum-ai-section">
+        <div class="panel-title">酒馆世界书</div>
+
+        <div class="forum-ai-help">
+          可以导入酒馆世界书 JSON 文件。导入后选择要挂载的世界书，并勾选启用的条目。
+        </div>
+
+        <input id="worldBookFileInput" type="file" accept=".json,application/json" hidden />
+
+<div class="btn-row">
+  <button id="importWorldBookBtn" class="retro-btn">导入世界书</button>
+  <button id="readTavernWorldBooksBtn" class="retro-btn ghost">从酒馆读取世界书</button>
+</div>
+
+        <label class="field-label">当前挂载世界书</label>
+        <select id="activeWorldBookSelect" class="retro-input">
+          <option value="">不挂载世界书</option>
+        </select>
+
+        <div id="worldBookEntryList" class="worldbook-entry-list"></div>
+
+        <div class="btn-row">
+          <button id="saveWorldBookSettingsBtn" class="retro-btn">保存世界书设置</button>
+        </div>
+      </div>
+            <div class="forum-ai-section">
+        <div class="panel-title">剧情角色启用板块</div>
+
+        <div class="forum-ai-help">
+          只有勾选的剧情板块，才允许同步生成剧情角色帖子。
+        </div>
+
+        <div id="storyBoardEnableList" class="story-board-enable-list">
+          <div class="empty-tip">正在读取剧情板块……</div>
+        </div>
+
+        <div class="btn-row">
+          <button id="saveStoryBoardEnableBtn" class="retro-btn">
+            保存启用板块
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="contactProfileOverlay" class="contact-profile-overlay" hidden>
+  <div class="contact-profile-window">
+    <div class="contact-profile-header">
+      <div>
+        <div id="contactProfileTitle" class="panel-title">个人主页</div>
+        <div id="contactProfileSub" class="social-main-sub">终端身份档案</div>
+      </div>
+
+      <div class="contact-profile-actions">
+        <button id="contactProfileMenuBtn" class="win-btn">设置</button>
+        <button id="closeContactProfileBtn" class="win-btn">返回</button>
+
+        <div id="contactProfileMenu" class="contact-profile-menu" hidden>
+          <button class="contact-profile-menu-item" data-contact-action="block">屏蔽聊天</button>
+          <button class="contact-profile-menu-item" data-contact-action="delete">删除好友</button>
+          <button class="contact-profile-menu-item" data-contact-action="remark">备注</button>
+          <button class="contact-profile-menu-item admin-only" data-contact-action="edit">修改对方主页</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="contactProfileBody" class="contact-profile-body"></div>
+  </div>
+</div>
+
+<div id="contactMiniPopover" class="contact-mini-popover" hidden></div>
+
+          <!-- 页面容器 -->
+          <div class="page-wrap">
+  <section class="page active" id="page-threads">
+    <div id="forumActionBar" class="forum-action-bar" hidden>
+  <button id="forumBackBtn" class="retro-btn small">返回</button>
+  <div id="forumRightBtns" style="display:flex;gap:6px;align-items:center">
+    <button id="deleteBoardBtn" class="retro-btn small warn" style="display:none">删除板块</button>
+    <button id="newThreadBtn" class="retro-btn small">发布帖子</button>
+  </div>
+</div>
+
+<div id="forumBoardDrawerRow" class="forum-board-drawer-row" hidden>
+  <button id="toggleBoardPickerBtn" class="board-drawer-toggle" type="button">
+    <span id="boardDrawerLabel">板块</span>
+    <span class="board-drawer-arrow">▾</span>
+  </button>
+  <div id="boardPickerDropdown" class="board-picker-dropdown" hidden></div>
+</div>
+
+
+
+<section id="forumPinnedBox" class="panel-box forum-pinned-box">
+  <div id="forumPinnedList" class="forum-pinned-list"></div>
+</section>
+
+<section id="forumGlobalSearchPanel" class="forum-global-search-panel" hidden></section>
+
+<section id="forumBoardSelectView" class="forum-view"></section>
+
+    <section id="forumThreadListView" class="forum-view" hidden>
+  <div class="panel-box">
+    <div id="forumThreadList" class="thread-feed-list"></div>
+  </div>
+</section>
+
+    <section id="forumThreadDetailView" class="forum-view" hidden>
+  <div class="panel-box">
+    <article id="forumThreadDetail" class="forum-thread-detail"></article>
+  </div>
+</section>
+
+<section id="forumComposerView" class="forum-view" hidden>
+  <div class="panel-box forum-composer-box">
+    <div class="panel-title">发布帖子</div>
+
+    <label class="field-label">标题</label>
+    <input
+      id="composerTitleInput"
+      class="retro-input"
+      placeholder="输入帖子标题"
+    />
+
+    <label class="field-label">标签</label>
+    <input
+      id="composerTagsInput"
+      class="retro-input"
+      placeholder="例如：独家头条, 地下室, 校园传闻"
+    />
+
+    <label class="field-label">正文</label>
+    <textarea
+      id="composerContentInput"
+      class="retro-input forum-composer-textarea"
+      placeholder="输入帖子正文..."
+    ></textarea>
+
+    <div class="btn-row">
+  <button id="submitComposerBtn" class="retro-btn">确认发布</button>
+  <button id="cancelComposerBtn" class="retro-btn ghost">取消</button>
+</div>
+
+  </div>
+</section>
+</section>
+
+<div id="commentActionMenu" class="comment-action-menu" hidden>
+  <button id="commentActionDeleteBtn" class="comment-action-item warn" type="button">删除评论</button>
+  <button id="commentActionReportBtn" class="comment-action-item" type="button">举报评论</button>
+  <button id="commentActionShareBtn" class="comment-action-item" type="button">转发评论</button>
+  <button id="commentActionCancelBtn" class="comment-action-item ghost" type="button">取消</button>
+</div>
+
+  <!-- 保留旧页面节点，避免别的脚本报错，但不再使用 -->
+  <section class="page" id="page-square" hidden></section>
+  <section class="page" id="page-events" hidden></section>
+  <section class="page" id="page-messages" hidden></section>
+  <section class="page" id="page-settings" hidden></section>
+</div>
+</section>
+
+
+              
+            
+        <!-- 右侧个人信息 -->
+        <aside class="sidebar-panel">
+          
+           <div id="profileEntryCard" class="profile-card bbs-profile-card profile-entry-card">
+  <div class="profile-top bbs-profile-top">
+    <div class="avatar-shell bbs-avatar-shell" title="点击进入个人主页">
+      <img id="userAvatar" src="" alt="用户头像" class="bbs-avatar-img" />
+      <div class="bbs-avatar-fallback">N/A</div>
+
+      <div class="bbs-avatar-hover">
+        <span>ENTER</span>
+        <span>PROFILE</span>
+      </div>
+
+      <div class="bbs-avatar-scan"></div>
+    </div>
+
+    <div class="profile-meta bbs-profile-meta">
+      <div id="userName" class="user-name">A.I. Observer</div>
+      <div id="userCodeText" class="user-id">ID: AIMMDDXX</div>
+      <div id="userStatusText" class="user-status">ONLINE</div>
+    </div>
+  </div>
+
+  <div class="profile-entry-hint">点击此区域进入个人主页</div>
+</div>
+
+<input type="file" id="avatarFileInput" accept="image/*" hidden />
+
+
+
+          <div class="side-section side-switch-panel">
+  <div class="side-title">互动列表</div>
+
+  <div class="side-switch-tabs">
+    <button class="side-switch-tab active" type="button" data-side-tab="messages">消息</button>
+    <button class="side-switch-tab" type="button" data-side-tab="friends">好友</button>
+    <button class="side-switch-tab" type="button" data-side-tab="groups">群聊</button>
+  </div>
+
+  <div id="sideTabMessages" class="side-switch-view active">
+    <div id="sidebarMessages" class="mini-list"></div>
+  </div>
+
+  <div id="sideTabFriends" class="side-switch-view" hidden>
+    <div id="friendList" class="mini-list"></div>
+  </div>
+
+  <div id="sideTabGroups" class="side-switch-view" hidden>
+    <div id="groupList" class="mini-list"></div>
+  </div>
+</div>
+        </aside>
+      </main>
+
+      <!-- 底栏 -->
+      <footer class="statusbar">
+        <div class="status-left">
+          <span class="blink">▶▶</span>
+          <span> 守夜人论坛在线 // 诺玛主机连接稳定 // 终端许可已验证</span>
+
+        </div>
+        <div class="status-right">
+          <span id="cacheStateText">CACHE: LOCAL</span>
+          <span id="themeStateText">THEME: CLASSIC</span>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div id="avatarPreviewModal" class="avatar-preview-modal">
+    <div class="avatar-preview-inner">
+      <button id="avatarPreviewClose" class="win-btn avatar-preview-close">关闭</button>
+      <img id="avatarPreviewImg" src="" alt="头像大图" />
+    </div>
+  </div>
+
+  <div id="authOverlay" class="auth-overlay">
+  <div class="auth-window">
+    <div class="auth-title">守夜人论坛</div>
+    <div class="auth-subtitle">NIGHT WATCH FORUM ACCESS TERMINAL</div>
+
+    <div class="auth-avatar-box">
+      <img
+        id="authAvatarPreview"
+        src="https://api.dicebear.com/7.x/lorelei/svg?seed=NightWatch"
+        alt="登录头像"
+      />
+    </div>
+
+    <div class="auth-student-id" id="authPreviewStudentId">请输入学号</div>
+
+    <label class="field-label">学号 / 编号</label>
+    <input
+      id="authStudentIdInput"
+      class="retro-input"
+      placeholder="例如：AIMMDDXX/MMDDXXA"
+    />
+
+<label class="field-label">访问码</label>
+<input
+  id="authAccessCodeInput"
+  class="retro-input"
+  type="password"
+  placeholder="输入管理员分配的访问码"
+/>
+
+    <div class="auth-btn-row">
+  <button id="loginAccountBtn" class="retro-btn">确认登录</button>
+</div>
+
+
+    <div class="auth-btn-row">
+      <button id="guestLoginBtn" class="retro-btn small">游客登录（无身份组）</button>
+    </div>
+
+    <div class="auth-tip">
+  当前版本采用白名单登录制。请输入已分配的学号登录；如无账号，请联系管理员添加。
+</div>
+  </div>
+</div>
+
+
+  <script type="module" src="./js/main.js"></script>
+
+】
+</body>
+</html>
