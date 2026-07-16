@@ -28,7 +28,7 @@
   if (typeof settings.enabled !== "boolean") settings.enabled = true;
   saveSettings(settings);
 
-  // ====== 注入设置面板（酒馆标准折叠格式） ======
+  // ====== 注入设置面板 ======
   function injectPanel() {
     if (document.getElementById(MODULE_NAME + "_settings")) return;
 
@@ -38,7 +38,6 @@
       return;
     }
 
-    // 酒馆标准折叠头
     const header = document.createElement("div");
     header.className = "extension_container";
     header.id = MODULE_NAME + "_settings";
@@ -48,7 +47,6 @@
         <span class="extension_container_collapse_icon"></span>
       </div>
       <div class="extension_container_body">
-        <!-- 折叠头下面的内容 -->
         <div class="extension_setting_block">
           <div class="flex-container">
             <input type="text" id="${MODULE_NAME}_api_url" class="text_pole"
@@ -76,33 +74,34 @@
     `;
     host.appendChild(header);
 
-    // 按钮事件
     document.getElementById(MODULE_NAME + "_open_btn").addEventListener("click", function () {
-          openForumWindow();
-        });
+      openForumWindow();
+    });
 
-        document.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
-          sendTavernContext();
-        });
+    document.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
+      sendTavernContext();
+    });
 
-        document.getElementById(MODULE_NAME + "_api_url").addEventListener("change", function () {
-          settings.apiBaseUrl = this.value.trim();
-          saveSettings(settings);
-        });
+    document.getElementById(MODULE_NAME + "_api_url").addEventListener("change", function () {
+      settings.apiBaseUrl = this.value.trim();
+      saveSettings(settings);
+    });
 
-        document.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
-          settings.auto_send_context = this.checked;
-          saveSettings(settings);
-        });
+    document.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
+      settings.auto_send_context = this.checked;
+      saveSettings(settings);
+    });
 
-        document.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
-          settings.enabled = this.checked;
-          saveSettings(settings);
-          toggleFloatingButton();
-        });
+    document.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
+      settings.enabled = this.checked;
+      saveSettings(settings);
+      toggleFloatingButton();
+    });
+
+    console.log("[守夜人论坛] 设置面板已注入");
   }
 
-  // ====== 聊天页悬浮按钮 ======
+  // ====== 悬浮按钮 ======
   function toggleFloatingButton() {
     if (settings.enabled) {
       showFloatingButton();
@@ -149,7 +148,7 @@
     if (btn) btn.remove();
   }
 
-  // ====== 打开论坛窗口 ======
+  // ====== 打开论坛窗口（用服务器地址） ======
   function openForumWindow() {
     let existing = document.getElementById("night-watch-forum-frame");
     if (existing) {
@@ -171,7 +170,6 @@
       flex-direction: column;
     `;
 
-    // 顶栏
     const topBar = document.createElement("div");
     topBar.style.cssText = `
       display: flex;
@@ -206,7 +204,24 @@
     overlay.appendChild(topBar);
 
     const frame = document.createElement("iframe");
-    frame.src = "index.html";
+    // 用插件文件夹里的 index.html
+    let scriptDir = "";
+    try {
+      const scripts = document.querySelectorAll("script");
+      for (let i = 0; i < scripts.length; i++) {
+        const src = scripts[i].src || "";
+        if (src.indexOf("night-watch-forum") !== -1 || src.indexOf(MODULE_NAME) !== -1) {
+          scriptDir = src.substring(0, src.lastIndexOf("/"));
+          break;
+        }
+      }
+    } catch (e) {}
+
+    if (scriptDir) {
+      frame.src = scriptDir + "/index.html";
+    } else {
+      frame.src = "scripts/extensions/third-party/night-watch-forum/index.html";
+    }
     frame.style.cssText = `
       flex: 1;
       width: 100%;
@@ -226,7 +241,6 @@
     });
 
     sendTavernContext();
-
     console.log("[守夜人论坛] 论坛窗口已打开");
   }
 
@@ -263,7 +277,6 @@
         const innerFrame = frame.querySelector("iframe");
         if (innerFrame && innerFrame.contentWindow) {
           try {
-            innerFrame.contentWindow.CassellTavernContext = window.CassellTavernContext;
             innerFrame.contentWindow.postMessage({
               type: "tavern-context",
               data: window.CassellTavernContext
