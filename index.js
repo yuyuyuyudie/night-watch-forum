@@ -3,8 +3,6 @@
   const MODULE_NAME = "night-watch-forum";
   const API_BASE = "http://43.135.26.183:3000";
 
-  // 安全区：如果内部若找不到函数就用空代替
-  let saveSettingsDebounced = function () {};
   let getContextStub = function () {
     return (typeof getContext === "function") ? getContext() : {};
   };
@@ -30,79 +28,132 @@
   if (typeof settings.enabled !== "boolean") settings.enabled = true;
   saveSettings(settings);
 
-  // ====== 注入设置面板 ======
+  // ====== 注入设置面板（酒馆标准折叠格式） ======
   function injectPanel() {
     if (document.getElementById(MODULE_NAME + "_settings")) return;
+
     const host = document.getElementById("extensions_settings");
     if (!host) {
-      // 找不到就等会儿再试
       setTimeout(injectPanel, 1000);
       return;
     }
 
-    const div = document.createElement("div");
-    div.id = MODULE_NAME + "_settings";
-    div.className = "extension_container";
-    div.innerHTML = `
-      <hr>
-      <div class="extension_setting_block">
-        <h4>守夜人论坛 Night Watch Forum</h4>
-        <div class="flex-container">
-          <input type="text" id="${MODULE_NAME}_api_url" class="text_pole"
-            placeholder="后端API地址" value="${settings.apiBaseUrl}">
+    // 酒馆标准折叠头
+    const header = document.createElement("div");
+    header.className = "extension_container";
+    header.id = MODULE_NAME + "_settings";
+    header.innerHTML = `
+      <div class="extension_container_header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <span class="extension_container_title">守夜人论坛 Night Watch Forum</span>
+        <span class="extension_container_collapse_icon"></span>
+      </div>
+      <div class="extension_container_body">
+        <!-- 折叠头下面的内容 -->
+        <div class="extension_setting_block">
+          <div class="flex-container">
+            <input type="text" id="${MODULE_NAME}_api_url" class="text_pole"
+              placeholder="后端API地址" value="${settings.apiBaseUrl}">
+          </div>
+          <div>
+            <label class="checkbox_label">
+              <input type="checkbox" id="${MODULE_NAME}_auto_context" ${settings.auto_send_context ? "checked" : ""}>
+              自动同步酒馆上下文到论坛
+            </label>
+          </div>
+          <div>
+            <label class="checkbox_label">
+              <input type="checkbox" id="${MODULE_NAME}_enabled" ${settings.enabled ? "checked" : ""}>
+              启用论坛悬浮按钮
+            </label>
+          </div>
+          <hr>
+          <div class="flex-container">
+            <button id="${MODULE_NAME}_open_btn" class="menu_button">打开守夜人论坛</button>
+            <button id="${MODULE_NAME}_send_context_btn" class="menu_button">立即同步酒馆上下文</button>
+          </div>
         </div>
-        <div>
-          <label class="checkbox_label">
-            <input type="checkbox" id="${MODULE_NAME}_auto_context" ${settings.auto_send_context ? "checked" : ""}>
-            自动同步酒馆上下文到论坛
-          </label>
-        </div>
-        <div>
-          <label class="checkbox_label">
-            <input type="checkbox" id="${MODULE_NAME}_enabled" ${settings.enabled ? "checked" : ""}>
-            启用论坛按钮
-          </label>
-        </div>
-        <hr>
-        <button id="${MODULE_NAME}_open_btn" class="menu_button">打开守夜人论坛</button>
-        <button id="${MODULE_NAME}_send_context_btn" class="menu_button">立即同步酒馆上下文</button>
       </div>
     `;
-    host.appendChild(div);
+    host.appendChild(header);
 
     // 按钮事件
     document.getElementById(MODULE_NAME + "_open_btn").addEventListener("click", function () {
+          openForumWindow();
+        });
+
+        document.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
+          sendTavernContext();
+        });
+
+        document.getElementById(MODULE_NAME + "_api_url").addEventListener("change", function () {
+          settings.apiBaseUrl = this.value.trim();
+          saveSettings(settings);
+        });
+
+        document.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
+          settings.auto_send_context = this.checked;
+          saveSettings(settings);
+        });
+
+        document.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
+          settings.enabled = this.checked;
+          saveSettings(settings);
+          toggleFloatingButton();
+        });
+  }
+
+  // ====== 聊天页悬浮按钮 ======
+  function toggleFloatingButton() {
+    if (settings.enabled) {
+      showFloatingButton();
+    } else {
+      hideFloatingButton();
+    }
+  }
+
+  function showFloatingButton() {
+    if (document.getElementById("night-watch-forum-float-btn")) return;
+
+    const btn = document.createElement("div");
+    btn.id = "night-watch-forum-float-btn";
+    btn.textContent = "📖";
+    btn.style.cssText = `
+      position: fixed;
+      right: 16px;
+      bottom: 120px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #34d399, #1a7f5a);
+      color: #fff;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 99998;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      user-select: none;
+      -webkit-user-select: none;
+    `;
+
+    btn.addEventListener("click", function () {
       openForumWindow();
     });
 
-    document.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
-      sendTavernContext();
-    });
+    document.body.appendChild(btn);
+  }
 
-    // 设置变化
-    document.getElementById(MODULE_NAME + "_api_url").addEventListener("change", function () {
-      settings.apiBaseUrl = this.value.trim();
-      saveSettings(settings);
-    });
-
-    document.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
-      settings.auto_send_context = this.checked;
-      saveSettings(settings);
-    });
-
-    document.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
-      settings.enabled = this.checked;
-      saveSettings(settings);
-    });
-
-    console.log("[守夜人论坛] 设置面板已注入");
+  function hideFloatingButton() {
+    const btn = document.getElementById("night-watch-forum-float-btn");
+    if (btn) btn.remove();
   }
 
   // ====== 打开论坛窗口 ======
   function openForumWindow() {
     let existing = document.getElementById("night-watch-forum-frame");
     if (existing) {
-      existing.style.display = "flex";
+      existing.remove();
       return;
     }
 
@@ -120,6 +171,7 @@
       flex-direction: column;
     `;
 
+    // 顶栏
     const topBar = document.createElement("div");
     topBar.style.cssText = `
       display: flex;
@@ -128,20 +180,28 @@
       padding: 10px 16px;
       background: #0c1210;
       color: #34d399;
-      font-family: monospace;
       flex-shrink: 0;
-      font-size: 14px;
     `;
     topBar.innerHTML = `
-      <strong>守夜人论坛</strong>
-      <button id="night-watch-forum-close" style="
-        padding: 6px 14px;
-        background: #111a14;
-        color: #34d399;
-        border: 1px solid #34d399;
-        cursor: pointer;
-        font-size: 13px;
-      ">✕ 关闭</button>
+      <span style="font-size: 15px; font-weight: bold;">守夜人论坛</span>
+      <div style="display: flex; gap: 8px;">
+        <button id="night-watch-forum-sync" style="
+          padding: 6px 14px;
+          background: #111a14;
+          color: #34d399;
+          border: 1px solid #34d399;
+          cursor: pointer;
+          font-size: 12px;
+        ">同步</button>
+        <button id="night-watch-forum-close" style="
+          padding: 6px 14px;
+          background: #111a14;
+          color: #f87171;
+          border: 1px solid #f87171;
+          cursor: pointer;
+          font-size: 12px;
+        ">✕</button>
+      </div>
     `;
     overlay.appendChild(topBar);
 
@@ -158,7 +218,11 @@
     document.body.appendChild(overlay);
 
     document.getElementById("night-watch-forum-close").addEventListener("click", function () {
-      overlay.style.display = "none";
+      overlay.remove();
+    });
+
+    document.getElementById("night-watch-forum-sync").addEventListener("click", function () {
+      sendTavernContext();
     });
 
     sendTavernContext();
@@ -194,7 +258,6 @@
 
       window.CassellTavernContext = JSON.stringify(tavernContext);
 
-      // 传给 iframe
       const frame = document.getElementById("night-watch-forum-frame");
       if (frame) {
         const innerFrame = frame.querySelector("iframe");
@@ -218,10 +281,12 @@
   // ====== 启动 ======
   function start() {
     injectPanel();
+    if (settings.enabled) {
+      setTimeout(showFloatingButton, 2000);
+    }
     console.log("[守夜人论坛] 插件已启动");
   }
 
-  // 等页面加载完再启动
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", start);
   } else {
