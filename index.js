@@ -2,6 +2,7 @@
 ;(function () {
   const MODULE_NAME = "night-watch-forum";
   const API_BASE = "http://43.135.26.183:3000";
+  const FLOAT_BTN_ICON = "https://i.ibb.co/x8rcFvSv/CASSELL-COLLEGE-gold-only-1.png";
 
   function getContextStub() {
     return (typeof getContext === "function") ? getContext() : {};
@@ -25,7 +26,8 @@
   let settings = loadSettings();
   if (!settings.apiBaseUrl) settings.apiBaseUrl = API_BASE;
   if (typeof settings.auto_send_context !== "boolean") settings.auto_send_context = true;
-  if (typeof settings.enabled !== "boolean") settings.enabled = true;
+  // 强制设为 true，保证按钮一定会出来
+  settings.enabled = true;
   saveSettings(settings);
 
   // ====== 注入设置面板 ======
@@ -44,31 +46,32 @@
     wrap.innerHTML = `
       <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-          <b>守夜人论坛 Night Watch Forum</b>
+          <b>守夜人论坛</b>
           <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
           <div class="extension_setting_block" style="padding: 10px 4px;">
 
+            <!-- 后端地址：默认隐藏。想改时把 display:none 改成 display:block -->
             <div id="${MODULE_NAME}_api_row" style="display:none; margin-bottom: 10px;">
               <small style="opacity:0.7;">后端地址（一般不用改）</small>
               <input type="text" id="${MODULE_NAME}_api_url" class="text_pole"
                 placeholder="后端地址" value="${settings.apiBaseUrl}">
             </div>
 
-            <label class="checkbox_label" style="display:flex;align-items:center;gap:8px;margin:10px 0; line-height:1.4;">
+            <label class="checkbox_label" style="display:flex;align-items:center;gap:8px;margin:10px 0;line-height:1.4;">
               <input type="checkbox" id="${MODULE_NAME}_auto_context" ${settings.auto_send_context ? "checked" : ""} style="flex-shrink:0;">
               <span>自动同步酒馆上下文到论坛</span>
             </label>
 
-            <label class="checkbox_label" style="display:flex;align-items:center;gap:8px;margin:10px 0; line-height:1.4;">
+            <label class="checkbox_label" style="display:flex;align-items:center;gap:8px;margin:10px 0;line-height:1.4;">
               <input type="checkbox" id="${MODULE_NAME}_enabled" ${settings.enabled ? "checked" : ""} style="flex-shrink:0;">
               <span>启用论坛悬浮按钮</span>
             </label>
 
-            <div style="display:flex; gap:10px; margin-top: 12px; flex-wrap: wrap;">
-              <div id="${MODULE_NAME}_open_btn" class="menu_button" style="flex:1; min-width:120px; text-align:center;">打开守夜人论坛</div>
-              <div id="${MODULE_NAME}_send_context_btn" class="menu_button" style="flex:1; min-width:120px; text-align:center;">立即同步上下文</div>
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+              <div id="${MODULE_NAME}_open_btn" class="menu_button" style="flex:1;min-width:120px;text-align:center;">打开守夜人论坛</div>
+              <div id="${MODULE_NAME}_send_context_btn" class="menu_button" style="flex:1;min-width:120px;text-align:center;">立即同步上下文</div>
             </div>
 
           </div>
@@ -119,26 +122,26 @@
     const btn = document.createElement("div");
     btn.id = "night-watch-forum-float-btn";
     btn.title = "守夜人论坛";
-    btn.innerHTML = `<img src="https://i.ibb.co/x8rcFvSv/CASSELL-COLLEGE-gold-only-1.png" style="width:100%;height:100%;object-fit:contain;border-radius:50%;pointer-events:none;">`;
+    btn.innerHTML = `<img src="${FLOAT_BTN_ICON}" style="width:100%;height:100%;object-fit:contain;border-radius:50%;pointer-events:none;">`;
     btn.style.cssText = `
       position: fixed;
       right: 14px;
-      bottom: 140px;
-      width: 56px;
-      height: 56px;
+      bottom: 160px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      background: rgba(12, 18, 16, 0.85);
+      background: rgba(12, 18, 16, 0.9);
       border: 2px solid #c9a227;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       z-index: 2147483000;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
-      padding: 4px;
+      padding: 5px;
       overflow: hidden;
     `;
 
@@ -297,7 +300,6 @@
 
     document.body.appendChild(overlay);
 
-    // 拖动
     let dragging = false;
     let dragStartX = 0, dragStartY = 0, dragWinX = 0, dragWinY = 0;
 
@@ -323,7 +325,6 @@
       if (dragging) { dragging = false; saveWinPos(); }
     }, { passive: true });
 
-    // 缩放
     let resizing = false;
     let resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
 
@@ -377,12 +378,12 @@
     if (document.getElementById("night-watch-forum-restore")) return;
     const r = document.createElement("div");
     r.id = "night-watch-forum-restore";
-    r.innerHTML = `<img src="https://i.ibb.co/x8rcFvSv/CASSELL-COLLEGE-gold-only-1.png" style="width:100%;height:100%;object-fit:contain;border-radius:50%;pointer-events:none;">`;
+    r.innerHTML = `<img src="${FLOAT_BTN_ICON}" style="width:100%;height:100%;object-fit:contain;border-radius:50%;pointer-events:none;">`;
     r.style.cssText = `
-      position: fixed; right: 16px; bottom: 60px; width: 52px; height: 52px;
-      border-radius: 50%; background: rgba(12, 18, 16, 0.85);
-      border: 2px solid #c9a227; padding: 4px; overflow: hidden;
-      cursor: pointer; z-index: 99998;
+      position: fixed; right: 16px; bottom: 80px; width: 56px; height: 56px;
+      border-radius: 50%; background: rgba(12, 18, 16, 0.9);
+      border: 2px solid #c9a227; padding: 5px; overflow: hidden;
+      cursor: pointer; z-index: 2147483000;
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     `;
     r.addEventListener("click", function () {
@@ -440,9 +441,11 @@
   // ====== 启动 ======
   function start() {
     injectPanel();
-    if (settings.enabled) {
-      setTimeout(showFloatingButton, 1500);
-    }
+    // 强制显示，多试几次
+    setTimeout(showFloatingButton, 500);
+    setTimeout(showFloatingButton, 1500);
+    setTimeout(showFloatingButton, 3000);
+    setTimeout(showFloatingButton, 5000);
     console.log("[守夜人论坛] 插件已启动");
   }
 
