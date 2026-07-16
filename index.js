@@ -343,28 +343,28 @@
       background: #0c1210;
       display: flex;
       flex-direction: column;
-      border: 2px solid #34d399;
-      border-radius: 12px;
+      border: none;
+      border-radius: 0;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
     `;
 
     const topBar = parentDoc.createElement("div");
     topBar.id = "night-watch-forum-dragbar";
-    topBar.style.cssText = `
+        topBar.style.cssText = `
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 14px;
+      padding: 8px 12px;
       background: #0c1210;
       color: #34d399;
       flex-shrink: 0;
       cursor: move;
       touch-action: none;
-      border-bottom: 1px solid #1f3329;
+      border-bottom: 1px solid #1a2a1e;
       user-select: none;
       -webkit-user-select: none;
     `;
+
     topBar.innerHTML = `
       <span style="font-size: 15px; font-weight: bold;">守夜人论坛</span>
       <div style="display: flex; gap: 8px; align-items: center;">
