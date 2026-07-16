@@ -1,6 +1,8 @@
 import { getContext, extension_settings, ModuleWorkerWrapper } from "../../extensions.js";
 import { saveSettingsDebounced } from "../../../script.js";
-import { renderExtensionTemplateAsync } from "../../../extensions.js";
+
+// 手机版兼容：如果找不到模块就用空函数代替
+function renderExtensionTemplateAsync() { return ""; }
 
 const MODULE_NAME = "night-watch-forum";
 
