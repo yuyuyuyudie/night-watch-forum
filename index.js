@@ -26,9 +26,47 @@
   let settings = loadSettings();
   if (!settings.apiBaseUrl) settings.apiBaseUrl = API_BASE;
   if (typeof settings.auto_send_context !== "boolean") settings.auto_send_context = true;
-  // 强制设为 true，保证按钮一定会出来
   settings.enabled = true;
   saveSettings(settings);
+
+  // ====== 弹出提示框 ======
+  function showToast(msg, bg, fg) {
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      z-index: 2147483647;
+      background: ${bg || "#0c1210"};
+      color: ${fg || "#34d399"};
+      border: 2px solid ${fg || "#34d399"};
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      max-width: 90vw;
+      text-align: center;
+      white-space: nowrap;
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(function() {
+      toast.style.opacity = "1";
+    }, 10);
+
+    setTimeout(function() {
+      toast.style.opacity = "0";
+      setTimeout(function() {
+        if (toast.parentNode) toast.remove();
+      }, 300);
+    }, 2500);
+  }
 
   // ====== 注入设置面板 ======
   function injectPanel() {
@@ -52,7 +90,6 @@
         <div class="inline-drawer-content">
           <div class="extension_setting_block" style="padding: 10px 4px;">
 
-            <!-- 后端地址：默认隐藏。想改时把 display:none 改成 display:block -->
             <div id="${MODULE_NAME}_api_row" style="display:none; margin-bottom: 10px;">
               <small style="opacity:0.7;">后端地址（一般不用改）</small>
               <input type="text" id="${MODULE_NAME}_api_url" class="text_pole"
@@ -74,6 +111,10 @@
               <div id="${MODULE_NAME}_send_context_btn" class="menu_button" style="flex:1;min-width:120px;text-align:center;">立即同步上下文</div>
             </div>
 
+            <div style="margin-top:14px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.2);">
+              <div id="${MODULE_NAME}_test_btn" class="menu_button" style="width:100%;text-align:center;background:#1a2a1e;color:#c9a227;border:1px solid #c9a227;">🔧 测试悬浮按钮（点这里）</div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -86,6 +127,18 @@
 
     document.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
       sendTavernContext();
+      showToast("已同步上下文", "#0c1210", "#34d399");
+    });
+
+    document.getElementById(MODULE_NAME + "_test_btn").addEventListener("click", function () {
+      hideFloatingButton();
+      showFloatingButton();
+      const btn = document.getElementById("night-watch-forum-float-btn");
+      if (btn) {
+        showToast("测试：悬浮按钮已创建，应该在右下角", "#0c1210", "#34d399");
+      } else {
+        showToast("测试：按钮创建失败", "#0c1210", "#f87171");
+      }
     });
 
     document.getElementById(MODULE_NAME + "_api_url").addEventListener("change", function () {
@@ -96,26 +149,25 @@
     document.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
       settings.auto_send_context = this.checked;
       saveSettings(settings);
+      showToast(this.checked ? "自动同步已开启" : "自动同步已关闭", "#0c1210", this.checked ? "#34d399" : "#f59e0b");
     });
 
     document.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
       settings.enabled = this.checked;
       saveSettings(settings);
-      toggleFloatingButton();
+      if (this.checked) {
+        showFloatingButton();
+        showToast("论坛悬浮按钮已开启，回聊天页看右下角", "#0c1210", "#34d399");
+      } else {
+        hideFloatingButton();
+        showToast("论坛悬浮按钮已关闭", "#0c1210", "#f59e0b");
+      }
     });
 
     console.log("[守夜人论坛] 设置面板已注入");
   }
 
   // ====== 悬浮按钮 ======
-  function toggleFloatingButton() {
-    if (settings.enabled) {
-      showFloatingButton();
-    } else {
-      hideFloatingButton();
-    }
-  }
-
   function showFloatingButton() {
     if (document.getElementById("night-watch-forum-float-btn")) return;
 
@@ -371,6 +423,7 @@
     });
 
     sendTavernContext();
+    showToast("论坛已打开", "#0c1210", "#34d399");
     console.log("[守夜人论坛] 论坛窗口已打开");
   }
 
@@ -441,11 +494,13 @@
   // ====== 启动 ======
   function start() {
     injectPanel();
-    // 强制显示，多试几次
     setTimeout(showFloatingButton, 500);
     setTimeout(showFloatingButton, 1500);
     setTimeout(showFloatingButton, 3000);
     setTimeout(showFloatingButton, 5000);
+    setTimeout(function() {
+      showToast("守夜人论坛已启动", "#0c1210", "#34d399");
+    }, 1500);
     console.log("[守夜人论坛] 插件已启动");
   }
 
