@@ -4,21 +4,29 @@
   const API_BASE = "http://43.135.26.183:3000";
   const FLOAT_BTN_ICON = "https://i.ibb.co/x8rcFvSv/CASSELL-COLLEGE-gold-only-1.png";
 
+  // 找到真正的聊天页面
+  const parentWin = (typeof window.parent !== "undefined" && window.parent !== window) ? window.parent : window;
+  const parentDoc = parentWin.document;
+
   function getContextStub() {
-    return (typeof getContext === "function") ? getContext() : {};
+    try {
+      return (typeof getContext === "function") ? getContext() : (parentWin.getContext ? parentWin.getContext() : {});
+    } catch (e) { return {}; }
   }
 
   // ====== 酒馆自带提示框 ======
   function notify(msg, type) {
-    // 酒馆自带 toastr，优先用酒馆的
-    if (typeof toastr !== "undefined") {
-      if (type === "error") toastr.error(msg);
-      else if (type === "warning") toastr.warning(msg);
-      else toastr.success(msg);
-      return;
-    }
-    // 兜底：如果酒馆没有 toastr，用自定义的简化版
-    const toast = document.createElement("div");
+    try {
+      const t = parentWin.toastr || (typeof toastr !== "undefined" ? toastr : null);
+      if (t) {
+        if (type === "error") t.error(msg);
+        else if (type === "warning") t.warning(msg);
+        else t.success(msg);
+        return;
+      }
+    } catch (e) {}
+
+    const toast = parentDoc.createElement("div");
     toast.textContent = msg;
     toast.style.cssText = `
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
@@ -27,7 +35,7 @@
       border: 1px solid #34d399; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
       pointer-events: none; opacity: 0; transition: opacity 0.3s; max-width: 90vw;
     `;
-    document.body.appendChild(toast);
+    parentDoc.body.appendChild(toast);
     setTimeout(function() { toast.style.opacity = "1"; }, 10);
     setTimeout(function() {
       toast.style.opacity = "0";
@@ -38,7 +46,7 @@
   // ====== 设置存储 ======
   function loadSettings() {
     try {
-      const raw = localStorage.getItem("night_watch_forum_settings");
+      const raw = parentWin.localStorage.getItem("night_watch_forum_settings");
       if (raw) return JSON.parse(raw);
     } catch (e) {}
     return {};
@@ -46,7 +54,7 @@
 
   function saveSettings(s) {
     try {
-      localStorage.setItem("night_watch_forum_settings", JSON.stringify(s));
+      parentWin.localStorage.setItem("night_watch_forum_settings", JSON.stringify(s));
     } catch (e) {}
   }
 
@@ -56,17 +64,22 @@
   settings.enabled = true;
   saveSettings(settings);
 
+  // ====== 默认按钮大小 ======
+  const DEFAULT_BTN_SIZE = 60;
+  if (!settings.btnSize) settings.btnSize = DEFAULT_BTN_SIZE;
+  saveSettings(settings);
+
   // ====== 注入设置面板 ======
   function injectPanel() {
-    if (document.getElementById(MODULE_NAME + "_settings")) return;
+    if (parentDoc.getElementById(MODULE_NAME + "_settings")) return;
 
-    const host = document.getElementById("extensions_settings");
+    const host = parentDoc.getElementById("extensions_settings");
     if (!host) {
       setTimeout(injectPanel, 1000);
       return;
     }
 
-    const wrap = document.createElement("div");
+    const wrap = parentDoc.createElement("div");
     wrap.id = MODULE_NAME + "_settings";
     wrap.className = "extension_container";
     wrap.innerHTML = `
@@ -100,7 +113,12 @@
             </div>
 
             <div style="margin-top:14px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.2);">
-              <div id="${MODULE_NAME}_test_btn" class="menu_button" style="width:100%;text-align:center;background:#1a2a1e;color:#c9a227;border:1px solid #c9a227;">🔧 测试悬浮按钮（点这里）</div>
+              <div style="margin-bottom:8px;font-size:13px;color:#c9a227;">悬浮按钮大小：<span id="${MODULE_NAME}_size_label">${settings.btnSize}px</span></div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <input type="range" id="${MODULE_NAME}_size_slider" min="40" max="120" step="5" value="${settings.btnSize}" style="flex:1;">
+                <button id="${MODULE_NAME}_apply_size" class="menu_button" style="padding:4px 12px;">应用</button>
+              </div>
+              <div id="${MODULE_NAME}_test_btn" class="menu_button" style="width:100%;margin-top:10px;text-align:center;background:#1a2a1e;color:#c9a227;border:1px solid #c9a227;">🔄 重新显示悬浮按钮</div>
             </div>
 
           </div>
@@ -109,43 +127,56 @@
     `;
     host.appendChild(wrap);
 
-    document.getElementById(MODULE_NAME + "_open_btn").addEventListener("click", function () {
+    parentDoc.getElementById(MODULE_NAME + "_open_btn").addEventListener("click", function () {
       openForumWindow();
     });
 
-    document.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
+    parentDoc.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
       sendTavernContext();
       notify("已同步上下文");
     });
 
-    document.getElementById(MODULE_NAME + "_test_btn").addEventListener("click", function () {
+    parentDoc.getElementById(MODULE_NAME + "_test_btn").addEventListener("click", function () {
       hideFloatingButton();
       showFloatingButton();
-      const btn = document.getElementById("night-watch-forum-float-btn");
+      const btn = parentDoc.getElementById("night-watch-forum-float-btn");
       if (btn) {
-        notify("测试：悬浮按钮已创建，回聊天页看右下角");
+        notify("悬浮按钮已重新显示");
       } else {
-        notify("测试：按钮创建失败", "error");
+        notify("按钮创建失败", "error");
       }
     });
 
-    document.getElementById(MODULE_NAME + "_api_url").addEventListener("change", function () {
+    parentDoc.getElementById(MODULE_NAME + "_size_slider").addEventListener("input", function () {
+      parentDoc.getElementById(MODULE_NAME + "_size_label").textContent = this.value + "px";
+    });
+
+    parentDoc.getElementById(MODULE_NAME + "_apply_size").addEventListener("click", function () {
+      const size = parseInt(parentDoc.getElementById(MODULE_NAME + "_size_slider").value) || DEFAULT_BTN_SIZE;
+      settings.btnSize = size;
+      saveSettings(settings);
+      hideFloatingButton();
+      showFloatingButton();
+      notify("按钮大小已更新为 " + size + "px");
+    });
+
+    parentDoc.getElementById(MODULE_NAME + "_api_url").addEventListener("change", function () {
       settings.apiBaseUrl = this.value.trim() || API_BASE;
       saveSettings(settings);
     });
 
-    document.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
+    parentDoc.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
       settings.auto_send_context = this.checked;
       saveSettings(settings);
       notify(this.checked ? "自动同步已开启" : "自动同步已关闭", this.checked ? "" : "warning");
     });
 
-    document.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
+    parentDoc.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
       settings.enabled = this.checked;
       saveSettings(settings);
       if (this.checked) {
         showFloatingButton();
-        notify("论坛悬浮按钮已开启，回聊天页看右下角");
+        notify("论坛悬浮按钮已开启");
       } else {
         hideFloatingButton();
         notify("论坛悬浮按钮已关闭", "warning");
@@ -155,20 +186,40 @@
     console.log("[守夜人论坛] 设置面板已注入");
   }
 
-  // ====== 悬浮按钮 ======
+  // ====== 悬浮按钮（初次出现在屏幕中间偏右，可拖动） ======
   function showFloatingButton() {
-    if (document.getElementById("night-watch-forum-float-btn")) return;
+    if (parentDoc.getElementById("night-watch-forum-float-btn")) return;
 
-    const btn = document.createElement("div");
+    const size = settings.btnSize || DEFAULT_BTN_SIZE;
+
+    // 检查有没有保存的位置
+    let savedPos = null;
+    try {
+      const saved = parentWin.localStorage.getItem("night_watch_forum_btn_pos");
+      if (saved) savedPos = JSON.parse(saved);
+    } catch (e) {}
+
+    let btnX, btnY;
+    if (savedPos && typeof savedPos.x === "number" && typeof savedPos.y === "number") {
+      // 用保存的位置
+      btnX = savedPos.x;
+      btnY = savedPos.y;
+    } else {
+      // 初次：屏幕中间偏右
+      btnX = parentWin.innerWidth - size - 20;
+      btnY = Math.round(parentWin.innerHeight / 2 - size / 2);
+    }
+
+    const btn = parentDoc.createElement("div");
     btn.id = "night-watch-forum-float-btn";
     btn.title = "守夜人论坛";
     btn.innerHTML = `<img src="${FLOAT_BTN_ICON}" style="width:100%;height:100%;object-fit:contain;border-radius:50%;pointer-events:none;">`;
     btn.style.cssText = `
       position: fixed;
-      right: 14px;
-      bottom: 160px;
-      width: 60px;
-      height: 60px;
+      left: ${btnX}px;
+      top: ${btnY}px;
+      width: ${size}px;
+      height: ${size}px;
       border-radius: 50%;
       background: rgba(12, 18, 16, 0.9);
       border: 2px solid #c9a227;
@@ -176,12 +227,12 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 2147483000;
+      z-index: 2147483647;
       box-shadow: 0 4px 14px rgba(0,0,0,0.5);
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
-      padding: 5px;
+      padding: 4px;
       overflow: hidden;
     `;
 
@@ -191,9 +242,8 @@
     let hasMoved = false;
 
     function onStart(clientX, clientY) {
-      const rect = btn.getBoundingClientRect();
-      startLeft = rect.left;
-      startTop = rect.top;
+      startLeft = btnX;
+      startTop = btnY;
       startX = clientX;
       startY = clientY;
       isDragging = true;
@@ -206,74 +256,82 @@
       const dx = clientX - startX;
       const dy = clientY - startY;
       if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
-      btn.style.left = (startLeft + dx) + "px";
-      btn.style.top = (startTop + dy) + "px";
-      btn.style.right = "auto";
-      btn.style.bottom = "auto";
+      btnX = Math.max(0, Math.min(parentWin.innerWidth - size, startLeft + dx));
+      btnY = Math.max(0, Math.min(parentWin.innerHeight - size, startTop + dy));
+      btn.style.left = btnX + "px";
+      btn.style.top = btnY + "px";
     }
 
     function onEnd() {
       if (!isDragging) return;
       isDragging = false;
       btn.style.transition = "box-shadow 0.2s";
-      if (!hasMoved) openForumWindow();
+      if (hasMoved) {
+        // 拖动了就保存位置
+        try {
+          parentWin.localStorage.setItem("night_watch_forum_btn_pos", JSON.stringify({ x: btnX, y: btnY }));
+        } catch (e) {}
+      } else {
+        // 没拖动，打开论坛
+        openForumWindow();
+      }
     }
 
-    btn.addEventListener("touchstart", function (e) {
-      if (e.touches.length !== 1) return;
-      onStart(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
+    function handleStart(e) {
+      if (e.touches && e.touches.length !== 1) return;
+      if (e.touches) onStart(e.touches[0].clientX, e.touches[0].clientY);
+      else onStart(e.clientX, e.clientY);
+    }
 
-    btn.addEventListener("touchmove", function (e) {
-      if (e.touches.length !== 1) return;
-      onMove(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
+    function handleMove(e) {
+      if (e.touches && e.touches.length !== 1) return;
+      if (e.touches) onMove(e.touches[0].clientX, e.touches[0].clientY);
+      else onMove(e.clientX, e.clientY);
+    }
 
-    btn.addEventListener("touchend", function () {
-      onEnd();
-    }, { passive: true });
-
-    btn.addEventListener("mousedown", function (e) {
+    btn.addEventListener("touchstart", handleStart, { passive: true });
+    btn.addEventListener("touchmove", handleMove, { passive: true });
+    btn.addEventListener("touchend", onEnd, { passive: true });
+    btn.addEventListener("mousedown", function(e) {
       e.preventDefault();
-      onStart(e.clientX, e.clientY);
-      function mm(ev) { onMove(ev.clientX, ev.clientY); }
+      handleStart(e);
+      function mm(ev) { handleMove(ev); }
       function mu() {
-        document.removeEventListener("mousemove", mm);
-        document.removeEventListener("mouseup", mu);
+        parentDoc.removeEventListener("mousemove", mm);
+        parentDoc.removeEventListener("mouseup", mu);
         onEnd();
       }
-      document.addEventListener("mousemove", mm);
-      document.addEventListener("mouseup", mu);
+      parentDoc.addEventListener("mousemove", mm);
+      parentDoc.addEventListener("mouseup", mu);
     });
 
-    document.body.appendChild(btn);
-    console.log("[守夜人论坛] 悬浮按钮已显示");
+    parentDoc.body.appendChild(btn);
+    console.log("[守夜人论坛] 悬浮按钮已显示，位置:", btnX, btnY, "大小:", size);
   }
 
   function hideFloatingButton() {
-    const btn = document.getElementById("night-watch-forum-float-btn");
+    const btn = parentDoc.getElementById("night-watch-forum-float-btn");
     if (btn) btn.remove();
   }
 
-  // ====== 打开论坛窗口 ======
+  // ====== 打开论坛窗口（居中） ======
   function openForumWindow() {
-    const existing = document.getElementById("night-watch-forum-frame");
+    const existing = parentDoc.getElementById("night-watch-forum-frame");
     if (existing) {
       existing.style.display = "flex";
-      const restore = document.getElementById("night-watch-forum-restore");
+      const restore = parentDoc.getElementById("night-watch-forum-restore");
       if (restore) restore.remove();
       return;
     }
 
-    const screenW = window.innerWidth;
-    const screenH = window.innerHeight;
-    // 初次打开默认居中
+    const screenW = parentWin.innerWidth;
+    const screenH = parentWin.innerHeight;
     const winW = Math.round(screenW * 0.96);
     const winH = Math.round(screenH * 0.88);
     const winX = Math.round((screenW - winW) / 2);
     const winY = Math.round((screenH - winH) / 2);
 
-    const overlay = document.createElement("div");
+    const overlay = parentDoc.createElement("div");
     overlay.id = "night-watch-forum-frame";
     overlay.style.cssText = `
       position: fixed;
@@ -281,7 +339,7 @@
       top: ${winY}px;
       width: ${winW}px;
       height: ${winH}px;
-      z-index: 99999;
+      z-index: 2147483646;
       background: #0c1210;
       display: flex;
       flex-direction: column;
@@ -291,7 +349,7 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.6);
     `;
 
-    const topBar = document.createElement("div");
+    const topBar = parentDoc.createElement("div");
     topBar.id = "night-watch-forum-dragbar";
     topBar.style.cssText = `
       display: flex;
@@ -317,7 +375,7 @@
     `;
     overlay.appendChild(topBar);
 
-    const resizeHandle = document.createElement("div");
+    const resizeHandle = parentDoc.createElement("div");
     resizeHandle.id = "night-watch-forum-resize";
     resizeHandle.style.cssText = `
       position: absolute; right: 0; bottom: 0; width: 24px; height: 24px;
@@ -326,16 +384,15 @@
     resizeHandle.innerHTML = `<div style="position:absolute;right:4px;bottom:4px;width:14px;height:14px;border-right:3px solid #34d399;border-bottom:3px solid #34d399;border-radius:0 0 6px 0;"></div>`;
     overlay.appendChild(resizeHandle);
 
-    const frame = document.createElement("iframe");
+    const frame = parentDoc.createElement("iframe");
     frame.src = settings.apiBaseUrl || API_BASE;
     frame.style.cssText = `flex:1;width:100%;border:none;background:#0c1210;`;
     overlay.appendChild(frame);
 
-    document.body.appendChild(overlay);
+    parentDoc.body.appendChild(overlay);
 
-    let curW = winW, curH = winH, curX = winX, curY = winY;
+    let curX = winX, curY = winY, curW = winW, curH = winH;
 
-    // 拖动
     let dragging = false;
     let dragStartX = 0, dragStartY = 0, dragWinX = 0, dragWinY = 0;
 
@@ -361,7 +418,6 @@
       dragging = false;
     }, { passive: true });
 
-    // 缩放
     let resizing = false;
     let resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
 
@@ -388,16 +444,16 @@
       resizing = false;
     }, { passive: true });
 
-    document.getElementById("night-watch-forum-close").addEventListener("click", function () {
+    parentDoc.getElementById("night-watch-forum-close").addEventListener("click", function () {
       overlay.remove();
     });
 
-    document.getElementById("night-watch-forum-min").addEventListener("click", function () {
+    parentDoc.getElementById("night-watch-forum-min").addEventListener("click", function () {
       overlay.style.display = "none";
       showRestoreButton();
     });
 
-    document.getElementById("night-watch-forum-sync").addEventListener("click", function () {
+    parentDoc.getElementById("night-watch-forum-sync").addEventListener("click", function () {
       sendTavernContext();
     });
 
@@ -407,25 +463,26 @@
   }
 
   function showRestoreButton() {
-    if (document.getElementById("night-watch-forum-restore")) return;
-    const r = document.createElement("div");
+    if (parentDoc.getElementById("night-watch-forum-restore")) return;
+    const size = settings.btnSize || DEFAULT_BTN_SIZE;
+    const r = parentDoc.createElement("div");
     r.id = "night-watch-forum-restore";
     r.innerHTML = `<img src="${FLOAT_BTN_ICON}" style="width:100%;height:100%;object-fit:contain;border-radius:50%;pointer-events:none;">`;
     r.style.cssText = `
-      position: fixed; right: 16px; bottom: 80px; width: 56px; height: 56px;
+      position: fixed; right: 16px; bottom: 80px; width: ${size}px; height: ${size}px;
       border-radius: 50%; background: rgba(12, 18, 16, 0.9);
-      border: 2px solid #c9a227; padding: 5px; overflow: hidden;
-      cursor: pointer; z-index: 2147483000;
+      border: 2px solid #c9a227; padding: 4px; overflow: hidden;
+      cursor: pointer; z-index: 2147483647;
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     `;
     r.addEventListener("click", function () {
-      const frame = document.getElementById("night-watch-forum-frame");
+      const frame = parentDoc.getElementById("night-watch-forum-frame");
       if (frame) {
         frame.style.display = "flex";
         r.remove();
       }
     });
-    document.body.appendChild(r);
+    parentDoc.body.appendChild(r);
   }
 
   // ====== 同步上下文 ======
@@ -449,16 +506,16 @@
         timestamp: new Date().toISOString()
       };
 
-      window.CassellTavernContext = JSON.stringify(tavernContext);
+      parentWin.CassellTavernContext = JSON.stringify(tavernContext);
 
-      const frame = document.getElementById("night-watch-forum-frame");
+      const frame = parentDoc.getElementById("night-watch-forum-frame");
       if (frame) {
         const innerFrame = frame.querySelector("iframe");
         if (innerFrame && innerFrame.contentWindow) {
           try {
             innerFrame.contentWindow.postMessage({
               type: "tavern-context",
-              data: window.CassellTavernContext
+              data: parentWin.CassellTavernContext
             }, "*");
           } catch (e) {}
         }
@@ -476,14 +533,15 @@
     setTimeout(showFloatingButton, 500);
     setTimeout(showFloatingButton, 1500);
     setTimeout(showFloatingButton, 3000);
+    setTimeout(showFloatingButton, 5000);
     setTimeout(function() {
       notify("守夜人论坛已启动");
     }, 1500);
     console.log("[守夜人论坛] 插件已启动");
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start);
+  if (parentDoc.readyState === "loading") {
+    parentDoc.addEventListener("DOMContentLoaded", start);
   } else {
     start();
   }
