@@ -8,6 +8,33 @@
     return (typeof getContext === "function") ? getContext() : {};
   }
 
+  // ====== 酒馆自带提示框 ======
+  function notify(msg, type) {
+    // 酒馆自带 toastr，优先用酒馆的
+    if (typeof toastr !== "undefined") {
+      if (type === "error") toastr.error(msg);
+      else if (type === "warning") toastr.warning(msg);
+      else toastr.success(msg);
+      return;
+    }
+    // 兜底：如果酒馆没有 toastr，用自定义的简化版
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.cssText = `
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: bold;
+      z-index: 2147483647; color: #34d399; background: #1a2a1e;
+      border: 1px solid #34d399; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      pointer-events: none; opacity: 0; transition: opacity 0.3s; max-width: 90vw;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.style.opacity = "1"; }, 10);
+    setTimeout(function() {
+      toast.style.opacity = "0";
+      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
+    }, 2500);
+  }
+
   // ====== 设置存储 ======
   function loadSettings() {
     try {
@@ -28,45 +55,6 @@
   if (typeof settings.auto_send_context !== "boolean") settings.auto_send_context = true;
   settings.enabled = true;
   saveSettings(settings);
-
-  // ====== 弹出提示框 ======
-  function showToast(msg, bg, fg) {
-    const toast = document.createElement("div");
-    toast.textContent = msg;
-    toast.style.cssText = `
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 14px 24px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: bold;
-      z-index: 2147483647;
-      background: ${bg || "#0c1210"};
-      color: ${fg || "#34d399"};
-      border: 2px solid ${fg || "#34d399"};
-      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      max-width: 90vw;
-      text-align: center;
-      white-space: nowrap;
-    `;
-    document.body.appendChild(toast);
-
-    setTimeout(function() {
-      toast.style.opacity = "1";
-    }, 10);
-
-    setTimeout(function() {
-      toast.style.opacity = "0";
-      setTimeout(function() {
-        if (toast.parentNode) toast.remove();
-      }, 300);
-    }, 2500);
-  }
 
   // ====== 注入设置面板 ======
   function injectPanel() {
@@ -127,7 +115,7 @@
 
     document.getElementById(MODULE_NAME + "_send_context_btn").addEventListener("click", function () {
       sendTavernContext();
-      showToast("已同步上下文", "#0c1210", "#34d399");
+      notify("已同步上下文");
     });
 
     document.getElementById(MODULE_NAME + "_test_btn").addEventListener("click", function () {
@@ -135,9 +123,9 @@
       showFloatingButton();
       const btn = document.getElementById("night-watch-forum-float-btn");
       if (btn) {
-        showToast("测试：悬浮按钮已创建，应该在右下角", "#0c1210", "#34d399");
+        notify("测试：悬浮按钮已创建，回聊天页看右下角");
       } else {
-        showToast("测试：按钮创建失败", "#0c1210", "#f87171");
+        notify("测试：按钮创建失败", "error");
       }
     });
 
@@ -149,7 +137,7 @@
     document.getElementById(MODULE_NAME + "_auto_context").addEventListener("change", function () {
       settings.auto_send_context = this.checked;
       saveSettings(settings);
-      showToast(this.checked ? "自动同步已开启" : "自动同步已关闭", "#0c1210", this.checked ? "#34d399" : "#f59e0b");
+      notify(this.checked ? "自动同步已开启" : "自动同步已关闭", this.checked ? "" : "warning");
     });
 
     document.getElementById(MODULE_NAME + "_enabled").addEventListener("change", function () {
@@ -157,10 +145,10 @@
       saveSettings(settings);
       if (this.checked) {
         showFloatingButton();
-        showToast("论坛悬浮按钮已开启，回聊天页看右下角", "#0c1210", "#34d399");
+        notify("论坛悬浮按钮已开启，回聊天页看右下角");
       } else {
         hideFloatingButton();
-        showToast("论坛悬浮按钮已关闭", "#0c1210", "#f59e0b");
+        notify("论坛悬浮按钮已关闭", "warning");
       }
     });
 
@@ -279,18 +267,11 @@
 
     const screenW = window.innerWidth;
     const screenH = window.innerHeight;
-    let winW = Math.round(screenW * 0.96);
-    let winH = Math.round(screenH * 0.88);
-    let winX = Math.round((screenW - winW) / 2);
-    let winY = Math.round((screenH - winH) / 2);
-
-    try {
-      const saved = JSON.parse(localStorage.getItem("night_watch_forum_win") || "{}");
-      if (saved.w) winW = saved.w;
-      if (saved.h) winH = saved.h;
-      if (typeof saved.x === "number") winX = saved.x;
-      if (typeof saved.y === "number") winY = saved.y;
-    } catch (e) {}
+    // 初次打开默认居中
+    const winW = Math.round(screenW * 0.96);
+    const winH = Math.round(screenH * 0.88);
+    const winX = Math.round((screenW - winW) / 2);
+    const winY = Math.round((screenH - winH) / 2);
 
     const overlay = document.createElement("div");
     overlay.id = "night-watch-forum-frame";
@@ -352,6 +333,9 @@
 
     document.body.appendChild(overlay);
 
+    let curW = winW, curH = winH, curX = winX, curY = winY;
+
+    // 拖动
     let dragging = false;
     let dragStartX = 0, dragStartY = 0, dragWinX = 0, dragWinY = 0;
 
@@ -359,7 +343,7 @@
       if (e.touches.length !== 1 || e.target.tagName === "BUTTON") return;
       const t = e.touches[0];
       dragStartX = t.clientX; dragStartY = t.clientY;
-      dragWinX = winX; dragWinY = winY;
+      dragWinX = curX; dragWinY = curY;
       dragging = true;
     }, { passive: true });
 
@@ -367,16 +351,17 @@
       if (!dragging || e.touches.length !== 1) return;
       e.preventDefault();
       const t = e.touches[0];
-      winX = dragWinX + (t.clientX - dragStartX);
-      winY = dragWinY + (t.clientY - dragStartY);
-      overlay.style.left = winX + "px";
-      overlay.style.top = winY + "px";
+      curX = dragWinX + (t.clientX - dragStartX);
+      curY = dragWinY + (t.clientY - dragStartY);
+      overlay.style.left = curX + "px";
+      overlay.style.top = curY + "px";
     }, { passive: false });
 
     topBar.addEventListener("touchend", function () {
-      if (dragging) { dragging = false; saveWinPos(); }
+      dragging = false;
     }, { passive: true });
 
+    // 缩放
     let resizing = false;
     let resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
 
@@ -384,7 +369,7 @@
       if (e.touches.length !== 1) return;
       e.stopPropagation();
       const t = e.touches[0];
-      resizeStartW = winW; resizeStartH = winH;
+      resizeStartW = curW; resizeStartH = curH;
       resizeStartX = t.clientX; resizeStartY = t.clientY;
       resizing = true;
     }, { passive: true });
@@ -393,21 +378,15 @@
       if (!resizing || e.touches.length !== 1) return;
       e.preventDefault();
       const t = e.touches[0];
-      winW = Math.max(280, resizeStartW + (t.clientX - resizeStartX));
-      winH = Math.max(300, resizeStartH + (t.clientY - resizeStartY));
-      overlay.style.width = winW + "px";
-      overlay.style.height = winH + "px";
+      curW = Math.max(280, resizeStartW + (t.clientX - resizeStartX));
+      curH = Math.max(300, resizeStartH + (t.clientY - resizeStartY));
+      overlay.style.width = curW + "px";
+      overlay.style.height = curH + "px";
     }, { passive: false });
 
     resizeHandle.addEventListener("touchend", function () {
-      if (resizing) { resizing = false; saveWinPos(); }
+      resizing = false;
     }, { passive: true });
-
-    function saveWinPos() {
-      try {
-        localStorage.setItem("night_watch_forum_win", JSON.stringify({ w: winW, h: winH, x: winX, y: winY }));
-      } catch (e) {}
-    }
 
     document.getElementById("night-watch-forum-close").addEventListener("click", function () {
       overlay.remove();
@@ -423,7 +402,7 @@
     });
 
     sendTavernContext();
-    showToast("论坛已打开", "#0c1210", "#34d399");
+    notify("论坛已打开");
     console.log("[守夜人论坛] 论坛窗口已打开");
   }
 
@@ -497,9 +476,8 @@
     setTimeout(showFloatingButton, 500);
     setTimeout(showFloatingButton, 1500);
     setTimeout(showFloatingButton, 3000);
-    setTimeout(showFloatingButton, 5000);
     setTimeout(function() {
-      showToast("守夜人论坛已启动", "#0c1210", "#34d399");
+      notify("守夜人论坛已启动");
     }, 1500);
     console.log("[守夜人论坛] 插件已启动");
   }
