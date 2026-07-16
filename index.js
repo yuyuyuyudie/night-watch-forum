@@ -41,37 +41,49 @@
     const header = document.createElement("div");
     header.className = "extension_container";
     header.id = MODULE_NAME + "_settings";
-    header.innerHTML = `
-      <div class="extension_container_header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span class="extension_container_title">守夜人论坛 Night Watch Forum</span>
-        <span class="extension_container_collapse_icon"></span>
-      </div>
-      <div class="extension_container_body">
-        <div class="extension_setting_block">
-          <div class="flex-container">
-            <input type="text" id="${MODULE_NAME}_api_url" class="text_pole"
-              placeholder="后端API地址" value="${settings.apiBaseUrl}">
-          </div>
-          <div>
-            <label class="checkbox_label">
-              <input type="checkbox" id="${MODULE_NAME}_auto_context" ${settings.auto_send_context ? "checked" : ""}>
-              自动同步酒馆上下文到论坛
-            </label>
-          </div>
-          <div>
-            <label class="checkbox_label">
-              <input type="checkbox" id="${MODULE_NAME}_enabled" ${settings.enabled ? "checked" : ""}>
-              启用论坛悬浮按钮
-            </label>
-          </div>
-          <hr>
-          <div class="flex-container">
-            <button id="${MODULE_NAME}_open_btn" class="menu_button">打开守夜人论坛</button>
-            <button id="${MODULE_NAME}_send_context_btn" class="menu_button">立即同步酒馆上下文</button>
-          </div>
+
+    const headerInner = document.createElement("div");
+    headerInner.className = "extension_container_header";
+    headerInner.innerHTML = `
+      <span class="extension_container_title">守夜人论坛 Night Watch Forum</span>
+      <span class="extension_container_collapse_icon"></span>
+    `;
+    headerInner.addEventListener("click", function(e) {
+      if (e.target.tagName === "BUTTON" || e.target.tagName === "INPUT" || e.target.tagName === "A") {
+        return;
+      }
+      header.classList.toggle("collapsed");
+    });
+    header.appendChild(headerInner);
+
+    const body = document.createElement("div");
+    body.className = "extension_container_body";
+    body.innerHTML = `
+      <div class="extension_setting_block">
+        <div class="flex-container">
+          <input type="text" id="${MODULE_NAME}_api_url" class="text_pole"
+            placeholder="后端API地址" value="${settings.apiBaseUrl}">
+        </div>
+        <div>
+          <label class="checkbox_label">
+            <input type="checkbox" id="${MODULE_NAME}_auto_context" ${settings.auto_send_context ? "checked" : ""}>
+            自动同步酒馆上下文到论坛
+          </label>
+        </div>
+        <div>
+          <label class="checkbox_label">
+            <input type="checkbox" id="${MODULE_NAME}_enabled" ${settings.enabled ? "checked" : ""}>
+            启用论坛悬浮按钮
+          </label>
+        </div>
+        <hr>
+        <div class="flex-container">
+          <button id="${MODULE_NAME}_open_btn" class="menu_button">打开守夜人论坛</button>
+          <button id="${MODULE_NAME}_send_context_btn" class="menu_button">立即同步酒馆上下文</button>
         </div>
       </div>
     `;
+    header.appendChild(body);
     host.appendChild(header);
 
     document.getElementById(MODULE_NAME + "_open_btn").addEventListener("click", function () {
