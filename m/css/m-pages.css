@@ -1,0 +1,143 @@
+/* ============================================
+   手机版页面样式 - Ins 风
+   ============================================ */
+
+/* ============ 通用卡片 ============ */
+.m-card {
+  background: var(--panel-2);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line-dark);
+}
+
+.m-card h2 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.m-card p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+/* ============ 板块列表 ============ */
+.m-board-item {
+  background: var(--panel-2);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line-dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.m-board-item:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.m-board-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.m-board-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.m-board-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.m-board-desc {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============ 帖子列表 ============ */
+.m-thread-item {
+  background: var(--panel-2);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line-dark);
+}
+
+.m-thread-item:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.m-thread-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.m-thread-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.m-thread-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============ 空状态 / 加载 ============ */
+.m-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.m-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.m-loading {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.m-loading::after {
+  content: "...";
+  animation: m-dots 1.2s steps(4) infinite;
+}
+
+@keyframes m-dots {
+  0%   { content: ""; }
+  25%  { content: "."; }
+  50%  { content: ".."; }
+  75%  { content: "..."; }
+  100% { content: ""; }
+}

@@ -1,0 +1,88 @@
+/* ============================================
+   手机版基础样式（和电脑端共享主题色）
+   ============================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: "Noto Sans SC", -apple-system, sans-serif;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+a { text-decoration: none; color: inherit; }
+
+input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+img { display: block; max-width: 100%; }
+
+/* ============================================
+   Ins 风主题色系
+   ============================================ */
+
+/* Ins 风 — 日间（米白主调） */
+.theme-classic.mode-day {
+  --bg: #faf9f6;
+  --panel: #ffffff;
+  --panel-2: #ffffff;
+  --input-bg: #f5f5f0;
+  --text: #1c1c1e;
+  --muted: #8e8e93;
+  --line-light: #f2f2f0;
+  --line-dark: #e5e5e0;
+  --accent: #262626;
+  --accent-2: #3897f0;
+  --green: #262626;
+  --gray: #c7c7cc;
+  --red: #ff3b30;
+  --amber: #ff9500;
+  --titlebar: #ffffff;
+  --titlebar-text: #1c1c1e;
+}
+
+/* Ins 风 — 夜间（纯黑主调） */
+.theme-classic.mode-night {
+  --bg: #000000;
+  --panel: #121212;
+  --panel-2: #1c1c1e;
+  --input-bg: #262626;
+  --text: #ffffff;
+  --muted: #8e8e93;
+  --line-light: #2c2c2e;
+  --line-dark: #1c1c1e;
+  --accent: #ffffff;
+  --accent-2: #3897f0;
+  --green: #ffffff;
+  --gray: #636366;
+  --red: #ff453a;
+  --amber: #ff9f0a;
+  --titlebar: #000000;
+  --titlebar-text: #ffffff;
+}
+
+/* 让手机版用主题色 */
+html, body, #app {
+  background: var(--bg);
+  color: var(--text);
+}
