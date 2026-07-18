@@ -24,49 +24,62 @@
   margin-bottom: 4px;
 }
 
-/* ============ 板块列表 ============ */
+/* ============ 板块列表（自适应） ============ */
+.m-board-grid-inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
 .m-board-item {
   background: var(--panel-2);
-  border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 10px;
+  border-radius: 10px;
+  padding: 12px;
   border: 1px solid var(--line-dark);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  text-align: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .m-board-item:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
   opacity: 0.9;
 }
 
 .m-board-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: var(--input-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
   flex-shrink: 0;
 }
 
 .m-board-info {
-  flex: 1;
+  width: 100%;
   min-width: 0;
 }
 
 .m-board-name {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .m-board-desc {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -91,21 +104,47 @@
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   line-height: 1.4;
 }
 
-.m-thread-meta {
+/* ============ 帖子底部操作栏 ============ */
+.m-thread-action-bar {
   display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--muted);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-dark);
 }
 
-.m-thread-meta span {
+.m-thread-action-left {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.m-thread-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.m-thread-action-btn:active {
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.m-thread-action-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 /* ============ 空状态 / 加载 ============ */
@@ -114,12 +153,6 @@
   padding: 40px 20px;
   color: var(--muted);
   font-size: 14px;
-}
-
-.m-empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-  opacity: 0.4;
 }
 
 .m-loading {
@@ -140,4 +173,251 @@
   50%  { content: ".."; }
   75%  { content: "..."; }
   100% { content: ""; }
+}
+
+/* ========== 帖子列表：作者行 ========== */
+.m-thread-author-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.m-thread-author-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--panel);
+}
+
+/* ========== 帖子详情：作者头像 ========== */
+.m-thread-detail-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.m-thread-detail-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--panel);
+}
+
+.m-thread-detail-author-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.m-thread-detail-author-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.m-thread-detail-meta {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ========== 回复：作者头像 ========== */
+.m-reply-author-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.m-reply-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--panel);
+}
+
+/* ========== 帖子菜单弹出 ========== */
+.m-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.m-menu-sheet {
+  width: 100%;
+  max-width: 400px;
+  background: var(--panel-2);
+  border-radius: 16px 16px 0 0;
+  padding: 8px 0;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.m-menu-sheet.show {
+  transform: translateY(0);
+}
+
+.m-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.m-menu-item:active {
+  background: rgba(128, 128, 128, 0.15);
+}
+
+.m-menu-item.danger {
+  color: var(--red);
+}
+
+.m-menu-item.cancel {
+  justify-content: center;
+  color: var(--muted);
+  border-top: 1px solid var(--line-dark);
+  margin-top: 4px;
+}
+
+.m-menu-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.m-menu-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ========== 操作按钮激活状态 ========== */
+.m-thread-action-btn.active-like,
+.m-thread-action-btn.active-like svg {
+  color: #4f8ff7 !important;
+}
+
+.m-thread-action-btn.active-dislike,
+.m-thread-action-btn.active-dislike svg {
+  color: #e74c3c !important;
+}
+
+.m-thread-action-btn.active-fav,
+.m-thread-action-btn.active-fav svg {
+  color: #f5a623 !important;
+}
+
+/* ========== 编辑帖子弹窗 ========== */
+.m-edit-form {
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+  overflow: hidden;
+}
+
+.m-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.m-edit-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.m-edit-close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.m-edit-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.m-edit-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+.m-edit-label:first-child {
+  margin-top: 0;
+}
+
+.m-edit-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line-dark);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+.m-edit-input:focus {
+  border-color: var(--accent, #2563eb);
+}
+
+.m-edit-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line-dark);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+
+.m-edit-textarea:focus {
+  border-color: var(--accent, #2563eb);
+}
+
+.m-edit-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line-dark);
+}
+
+.m-edit-save {
+  width: 100%;
+  padding: 12px;
+  background: var(--text);
+  color: var(--panel-2);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.m-edit-save:active {
+  opacity: 0.8;
 }
