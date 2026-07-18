@@ -12,6 +12,7 @@ var backTarget = "home";
 var currentThreadId = null;
 var currentThreadSlug = null;
 var currentThreadData = null;
+var currentBoardContext = null;
 
 var tabs = document.querySelectorAll(".m-tab");
 var content = document.getElementById("mContent");
@@ -235,7 +236,215 @@ function showMenuButton() {
   themeToggleBtn.onclick = function () { showThreadMenu(); };
 }
 
-/* ========== 帖子菜单 ========== */
+/* ========== 评论长按菜单 ========== */
+function showCommentActionSheet(commentId) {
+  var old = document.getElementById("mCommentSheetOverlay");
+  if (old) old.remove();
+
+  if (!currentThreadData || !currentThreadData.id) return;
+
+  var comments = currentThreadData.comments || [];
+
+  var target = comments.find(function (c) {
+    return String(c.id) === String(commentId);
+  });
+
+  if (!target) return;
+
+  var overlay = document.createElement("div");
+  overlay.id = "mCommentSheetOverlay";
+  overlay.className = "m-sheet-overlay";
+
+  var sheet = document.createElement("div");
+  sheet.className = "m-comment-sheet";
+
+  var isSystem = Boolean(target.isSystem || target.system_flag);
+
+  if (isSystem) {
+    sheet.innerHTML =
+      '<button class="m-sheet-item" data-act="close">关闭</button>';
+
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
+
+    overlay.querySelectorAll(".m-sheet-item").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        overlay.remove();
+      });
+    });
+
+    return;
+  }
+
+  var myStudentId =
+    currentAccount && currentAccount.studentId
+      ? String(currentAccount.studentId).toUpperCase()
+      : "";
+
+  var commentStudentId = String(
+    target.authorStudentId ||
+    target.author_student_id ||
+    ""
+  ).toUpperCase();
+
+  var threadOwner = String(
+    currentThreadData.ownerStudentId ||
+    currentThreadData.authorStudentId ||
+    currentThreadData.author_student_id ||
+    ""
+  ).toUpperCase();
+
+  var canDelete =
+    isAdminOrMod() ||
+    commentStudentId === myStudentId ||
+    threadOwner === myStudentId;
+
+  var html = "";
+
+  html +=
+    '<button class="m-sheet-item" data-act="share">' +
+      '<span class="m-sheet-icon">' + ICO.share + '</span>' +
+      '<span>转发评论</span>' +
+    '</button>';
+
+  html +=
+    '<button class="m-sheet-item" data-act="report">' +
+      '<span class="m-sheet-icon">' + ICO.report + '</span>' +
+      '<span>举报评论</span>' +
+    '</button>';
+
+  if (canDelete) {
+    html +=
+      '<button class="m-sheet-item danger" data-act="delete">' +
+        '<span class="m-sheet-icon">' + ICO.trash + '</span>' +
+        '<span>删除评论</span>' +
+      '</button>';
+  }
+
+  html += '<button class="m-sheet-item cancel" data-act="close">取消</button>';
+
+  sheet.innerHTML = html;
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+
+  overlay.querySelectorAll(".m-sheet-item").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var act = btn.getAttribute("data-act");
+      overlay.remove();
+
+      if (act === "share") shareComment(commentId);
+      else if (act === "report") reportComment(commentId);
+      else if (act === "delete") deleteComment(commentId);
+    });
+  });
+
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) overlay.remove();
+  });
+}
+
+/* ========== 分享评论 ========== */
+function shareComment(commentId) {
+  var url =
+    window.location.origin +
+    "/m-index.html?thread=" +
+    encodeURIComponent(currentThreadData.id) +
+    "&comment=" +
+    encodeURIComponent(commentId) +
+    "&v=14";
+
+  var title = currentThreadData.title || "守夜人论坛";
+
+  if (navigator.share) {
+    navigator.share({
+      title: title,
+      text: "看看这条评论",
+      url: url
+    }).catch(function () {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url);
+    alert("评论链接已复制");
+  } else {
+    alert(url);
+  }
+}
+
+/* ========== 举报评论 ========== */
+function reportComment(commentId) {
+  var reason = prompt("请输入举报原因（选填）：");
+
+  if (reason === null) return;
+
+  mFetch(
+    "/api/comments/" + encodeURIComponent(commentId) + "/report",
+    {
+      method: "POST",
+      body: JSON.stringify({ reason: reason || "" })
+    }
+  )
+    .then(function (res) {
+      if (res.ok && res.data && res.data.success) {
+        alert(res.data.message || "举报已提交");
+      } else {
+        alert(
+          (res.data && res.data.message) || "举报失败"
+        );
+      }
+    })
+    .catch(function () {
+      alert("请求失败");
+    });
+}
+
+/* ========== 删除评论 ========== */
+function deleteComment(commentId) {
+  if (!confirm("确定要删除这条评论吗？")) return;
+
+  mFetch(
+    "/api/comments/" + encodeURIComponent(commentId),
+    { method: "DELETE" }
+  )
+    .then(function (res) {
+      if (res.ok && res.data && res.data.success) {
+        reloadCurrentThreadComments();
+      } else {
+        alert(
+          (res.data && res.data.message) || "删除失败"
+        );
+      }
+    })
+    .catch(function () {
+      alert("请求失败");
+    });
+}
+
+/* ========== 重新加载当前帖子的评论 ========== */
+function reloadCurrentThreadComments() {
+  if (!currentThreadData || !currentThreadData.id) return;
+
+  mFetch(
+    "/api/threads/" +
+      encodeURIComponent(currentThreadData.id)
+  )
+    .then(function (res) {
+      if (
+        res.ok &&
+        res.data &&
+        res.data.thread
+      ) {
+        currentThreadData = res.data.thread;
+
+        var comments = Array.isArray(currentThreadData.comments)
+          ? currentThreadData.comments
+          : [];
+
+        currentThreadData.comments = comments;
+        paintThread(currentThreadData, comments);
+      }
+    })
+    .catch(function () {});
+}
+
 function showThreadMenu() {
   var old = document.getElementById("mThreadMenuOverlay");
   if (old) old.remove();
@@ -610,6 +819,64 @@ function isThreadPinned(t) {
   );
 }
 
+/* ========== 评论操作栏（点赞、点踩、楼层） ========== */
+function buildCommentFooter(comment, commentStudentId) {
+  var isDeleted = Boolean(comment.isDeleted || comment.is_deleted);
+
+  if (isDeleted) {
+    return '<div class="m-reply-footer"></div>';
+  }
+
+  var isLiked = false;
+  var isDisliked = false;
+
+  var reaction =
+    comment.currentUserReaction ||
+    comment.my_reaction ||
+    comment.userReaction;
+
+  if (reaction) {
+    var reactionType =
+      typeof reaction === "string"
+        ? reaction
+        : (reaction.reactionType ||
+           reaction.reaction_type ||
+           reaction.type ||
+           "");
+
+    isLiked = reactionType === "like" || reactionType === "liked";
+    isDisliked = reactionType === "dislike" || reactionType === "disliked";
+  }
+
+  var floorNo = Number(comment.floorNo || comment.floor_no || 0);
+
+  return (
+    '<div class="m-reply-footer">' +
+      '<div class="m-reply-actions">' +
+        '<button ' +
+          'type="button" ' +
+          'class="m-reply-action-btn' + (isLiked ? ' active-like' : '') + '" ' +
+          'data-comment-act="like" ' +
+          'data-comment-id="' + escapeHtml(comment.id) + '">' +
+          (isLiked ? ICO.likeOn : ICO.like) +
+          '<span>' + escapeHtml(String(comment.likeCount || comment.like_count || 0)) + '</span>' +
+        '</button>' +
+        '<button ' +
+          'type="button" ' +
+          'class="m-reply-action-btn' + (isDisliked ? ' active-dislike' : '') + '" ' +
+          'data-comment-act="dislike" ' +
+          'data-comment-id="' + escapeHtml(comment.id) + '">' +
+          (isDisliked ? ICO.dislikeOn : ICO.dislike) +
+          '<span>' + escapeHtml(String(comment.dislikeCount || comment.dislike_count || 0)) + '</span>' +
+        '</button>' +
+      '</div>' +
+      '<div class="m-reply-floor">' +
+        (floorNo > 0 ? escapeHtml(floorNo) + '楼' : '') +
+      '</div>' +
+    '</div>'
+  );
+}
+
 function buildActionBar(t) {
   var isLiked = false;
   var isDisliked = false;
@@ -708,6 +975,7 @@ function refreshActionBar() {
    首页 — 抽屉板块 + 热门帖子
    ========================================================== */
 function renderHome() {
+  currentBoardContext = null;
   headerTitle.textContent = "守夜人论坛";
   showSearchOnly();
   showTabBar();
@@ -879,9 +1147,18 @@ html +=
       list.querySelectorAll(".m-thread-item").forEach(function (el) {
         var tid = el.dataset.id;
         bindActionBar(el, tid);
-        el.querySelector(".m-thread-title").addEventListener("click", function () {
-          renderThreadPage(tid, el.dataset.slug);
-        });
+        el.addEventListener("click", function (event) {
+  if (
+    event.target.closest(".m-thread-action-btn") ||
+    event.target.closest("button") ||
+    event.target.closest("a")
+  ) {
+    return;
+  }
+
+  renderThreadPage(tid, el.dataset.slug);
+});
+
       });
     });
   }).catch(function () { list.innerHTML = '<div class="m-empty">热门加载失败</div>'; });
@@ -889,6 +1166,11 @@ html +=
 
 /* ========== 板块页 ========== */
 function renderBoardPage(slug, boardName) {
+  currentBoardContext = {
+    slug: String(slug || ""),
+    name: String(boardName || "")
+  };
+
   backTarget = "home";
   headerTitle.textContent = boardName || "板块";
   showBackOnly(); showTabBar(); showThemeButton();
@@ -937,9 +1219,18 @@ html +=
     box.querySelectorAll(".m-thread-item").forEach(function (el) {
       var tid = el.dataset.id;
       bindActionBar(el, tid);
-      el.querySelector(".m-thread-title").addEventListener("click", function () {
-        renderThreadPage(tid, el.dataset.slug);
-      });
+      el.addEventListener("click", function (event) {
+  if (
+    event.target.closest(".m-thread-action-btn") ||
+    event.target.closest("button") ||
+    event.target.closest("a")
+  ) {
+    return;
+  }
+
+  renderThreadPage(tid, el.dataset.slug);
+});
+
     });
   }).catch(function () { var box = document.getElementById("mBoardThreads"); if (box) box.innerHTML = '<div class="m-empty">加载失败</div>'; });
 }
@@ -1012,6 +1303,182 @@ function renderCommentText(text) {
   );
 
   return safeText.replace(/\n/g, "<br>");
+}
+
+/* ========== 绑定评论的点赞、点踩、回复、长按 ========== */
+function bindCommentActions(root) {
+  if (!root) return;
+
+  var replyItems = root.querySelectorAll(".m-reply-item");
+
+  replyItems.forEach(function (item) {
+    var commentId = item.getAttribute("data-comment-id");
+
+    if (!commentId) return;
+
+    /* 点赞点踩按钮 */
+    item.querySelectorAll(".m-reply-action-btn").forEach(function (btn) {
+      btn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        var act = btn.getAttribute("data-comment-act");
+        if (act === "like" || act === "dislike") {
+          doCommentAction(commentId, act, btn);
+        }
+      });
+    });
+
+    /* 点击评论内容进入回复引用 */
+    var replyContent = item.querySelector(".m-reply-content");
+
+    if (replyContent) {
+      replyContent.addEventListener("click", function () {
+        enterReplyQuoteState(commentId);
+      });
+    }
+
+    /* 长按评论弹出菜单 */
+    var pressTimer = null;
+    var hasLongPressed = false;
+
+    item.addEventListener("touchstart", function () {
+      hasLongPressed = false;
+      pressTimer = setTimeout(function () {
+        hasLongPressed = true;
+        showCommentActionSheet(commentId);
+      }, 600);
+    });
+
+    item.addEventListener("touchend", function () {
+      clearTimeout(pressTimer);
+    });
+
+    item.addEventListener("touchmove", function () {
+      clearTimeout(pressTimer);
+    });
+
+    /* 引用方块点击跳转 */
+    var quoteBlock = item.querySelector(".m-reply-quote");
+
+    if (quoteBlock) {
+      quoteBlock.addEventListener("click", function (event) {
+        event.stopPropagation();
+        var targetId = quoteBlock.getAttribute("data-quote-comment-id");
+        if (targetId) scrollToComment(targetId);
+      });
+    }
+  });
+}
+
+/* ========== 点赞或点踩 ========== */
+function doCommentAction(commentId, action, btn) {
+  var path =
+    "/api/comments/" +
+    encodeURIComponent(commentId) +
+    "/" +
+    action;
+
+  mFetch(path, { method: "POST" })
+    .then(function (res) {
+      if (
+        res.ok &&
+        res.data &&
+        res.data.comment
+      ) {
+        refreshSingleComment(commentId, res.data.comment);
+      } else {
+        var msg =
+          (res.data && res.data.message) ||
+          "操作失败";
+
+        if (res.status === 401) msg = "请先登录";
+        alert(msg);
+      }
+    })
+    .catch(function () {
+      alert("请求失败");
+    });
+}
+
+/* ========== 刷新单条评论 ========== */
+function refreshSingleComment(commentId, commentData) {
+  var oldItem = document.querySelector(
+    '.m-reply-item[data-comment-id="' +
+      escapeHtml(commentId) +
+    '"]'
+  );
+
+  if (!oldItem) return;
+
+  var newFooter = document.createElement("div");
+  newFooter.innerHTML = buildCommentFooter(commentData);
+
+  var oldFooter = oldItem.querySelector(".m-reply-footer");
+
+  if (oldFooter && newFooter.firstChild) {
+    oldItem.replaceChild(newFooter.firstChild, oldFooter);
+    bindCommentActions(oldItem);
+  }
+}
+
+/* ========== 进入回复引用状态 ========== */
+var replyQuoteState = null;
+
+function enterReplyQuoteState(commentId) {
+  if (!currentThreadData || !currentThreadData.id) return;
+
+  var comments = currentThreadData.comments || [];
+
+  var target = comments.find(function (c) {
+    return String(c.id) === String(commentId);
+  });
+
+  if (!target) return;
+
+  if (Boolean(target.isDeleted || target.is_deleted)) {
+    alert("这条评论已删除，无法回复");
+    return;
+  }
+
+  replyQuoteState = {
+    commentId: commentId,
+    authorForumId:
+      target.authorForumId ||
+      target.author_forum_id ||
+      target.author ||
+      "匿名",
+    text: target.text != null ? target.text : (target.content || "")
+  };
+
+  showReplyBar();
+
+  var input = document.getElementById("mReplyInput");
+  if (input) {
+    input.value = "";
+    input.setAttribute(
+      "placeholder",
+      "回复 @" + replyQuoteState.authorForumId + "："
+    );
+    input.focus();
+  }
+}
+
+/* ========== 跳转到被引用的评论并闪烁 ========== */
+function scrollToComment(commentId) {
+  var target = document.querySelector(
+    '.m-reply-item[data-comment-id="' +
+      escapeHtml(commentId) +
+    '"]'
+  );
+
+  if (!target) return;
+
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  target.classList.remove("m-reply-flash");
+
+  void target.offsetWidth;
+
+  target.classList.add("m-reply-flash");
 }
 
 function loadCommentMentions(root) {
@@ -1168,6 +1635,8 @@ function paintMentionProfile(user) {
     '</div>';
 }
 
+var pendingScrollCommentId = null;
+
 function paintThread(t, comments) {
   comments = Array.isArray(comments) ? comments : [];
 
@@ -1187,14 +1656,10 @@ function paintThread(t, comments) {
     defaultAvatar(authorSid || authorName);
 
   var detailPinnedClass = isThreadPinned(t)
-    ? " m-thread-detail-pinned"
-    : "";
+  ? " m-thread-detail-pinned"
+  : "";
 
-  var detailPinnedMark = isThreadPinned(t)
-    ? '<div class="m-thread-detail-pin-line">' +
-        '<span class="m-pinned-mark">置顶</span>' +
-      '</div>'
-    : "";
+var detailPinnedMark = "";
 
   var authorEditedAt =
     t.authorEditedAt ||
@@ -1330,10 +1795,15 @@ function paintThread(t, comments) {
                     : (rSid || rName)
                 );
 
-              var rText =
-                r.text != null
-                  ? r.text
-                  : (r.content || "");
+              var isDeletedComment = Boolean(r.isDeleted || r.is_deleted);
+
+var rText = isDeletedComment
+  ? "该评论已删除"
+  : (
+      r.text != null
+        ? r.text
+        : (r.content || "")
+    );
 
               var systemBadge = isSystem
                 ? '<span class="m-system-badge">' +
@@ -1345,9 +1815,54 @@ function paintThread(t, comments) {
                   '</span>'
                 : "";
 
-              return '<div class="m-reply-item' +
-                (isSystem ? ' m-reply-system' : '') +
-                '">' +
+              var quoteBlockHtml = "";
+
+var replyTo = r.replyTo || r.reply_to || null;
+
+var replyTargetId =
+  (replyTo && (replyTo.id || replyTo.commentId)) ||
+  r.replyCommentId ||
+  r.reply_comment_id ||
+  "";
+
+if (replyTargetId) {
+  var quoteAuthor =
+    (replyTo && (replyTo.author || replyTo.authorForumId)) ||
+    r.replyPreviewAuthor ||
+    r.reply_preview_author ||
+    "匿名";
+
+  var quoteText =
+    replyTo && replyTo.text != null
+      ? replyTo.text
+      : (
+          r.replyPreviewText != null
+            ? (r.replyPreviewText || "")
+            : (r.reply_preview_text || "")
+        );
+
+  var safeQuoteText = String(quoteText).replace(/\n/g, " ");
+
+  quoteBlockHtml =
+    '<div ' +
+      'class="m-reply-quote" ' +
+      'data-quote-comment-id="' +
+        escapeHtml(replyTargetId) +
+      '">' +
+      '<span class="m-reply-quote-author">' +
+        escapeHtml(quoteAuthor) +
+      '</span>' +
+      '<span class="m-reply-quote-text">' +
+        escapeHtml(safeQuoteText) +
+      '</span>' +
+    '</div>';
+}
+
+return '<div class="m-reply-item' +
+  (isSystem ? ' m-reply-system' : '') +
+  '" data-comment-id="' + escapeHtml(r.id) + '">' +
+  quoteBlockHtml +
+
 
                 '<div class="m-reply-header">' +
                   '<div class="m-reply-author-row">' +
@@ -1371,11 +1886,20 @@ function paintThread(t, comments) {
                   '</span>' +
                 '</div>' +
 
-                '<div class="m-reply-content">' +
-                  renderCommentText(rText) +
-                '</div>' +
+                '<div class="m-reply-content' +
+  (isDeletedComment ? ' m-reply-deleted' : '') +
+'">' +
+  (
+    isDeletedComment
+      ? escapeHtml(rText)
+      : renderCommentText(rText)
+  ) +
+'</div>' +
 
-              '</div>';
+buildCommentFooter(r, rSid) +
+
+'</div>';
+
             }).join("")
           : '<div class="m-empty">暂无回复</div>'
       ) +
@@ -1387,7 +1911,15 @@ function paintThread(t, comments) {
     bindActionBar(detail, t.id);
   }
 
-  loadCommentMentions(content);
+    loadCommentMentions(content);
+  bindCommentActions(content);
+
+  if (pendingScrollCommentId) {
+    setTimeout(function () {
+      scrollToComment(pendingScrollCommentId);
+      pendingScrollCommentId = null;
+    }, 200);
+  }
 }
 
 /* ========== 档案 / 发帖 / 消息 ========== */
@@ -1428,12 +1960,23 @@ function renderPost() {
       '<label class="m-edit-label">标签</label>' +
       '<input class="m-edit-input" id="mPostTags" maxlength="100" placeholder="多个标签用逗号隔开">' +
 
-      '<label class="m-edit-label">位置</label>' +
-      '<input class="m-edit-input" id="mPostLocation" maxlength="80" placeholder="输入位置">' +
+      '<div class="m-post-location-field" id="mPostLocationField" style="display:none;">' +
+  '<label class="m-edit-label">位置</label>' +
+  '<div class="m-location-picker">' +
+    '<input ' +
+      'class="m-edit-input m-location-search-input" ' +
+      'id="mPostLocation" ' +
+      'maxlength="80" ' +
+      'autocomplete="off" ' +
+      'placeholder="搜索或填写位置">' +
+    '<div class="m-location-options" id="mPostLocationOptions"></div>' +
+  '</div>' +
+'</div>' +
 
     '</div>';
 
   loadPostBoards();
+bindPostLocationPicker();
 
   if (bottomPublishBtn) {
     bottomPublishBtn.disabled = false;
@@ -1444,6 +1987,7 @@ function renderPost() {
 
 function loadPostBoards() {
   var select = document.getElementById("mPostBoard");
+
   if (!select) return;
 
   mFetch("/api/boards")
@@ -1454,7 +1998,10 @@ function loadPostBoards() {
           : [];
 
       if (!res.ok || boards.length === 0) {
-        select.innerHTML = '<option value="">没有可用板块</option>';
+        select.innerHTML =
+          '<option value="">没有可用板块</option>';
+
+        updatePostLocationAvailability();
         return;
       }
 
@@ -1463,21 +2010,232 @@ function loadPostBoards() {
       });
 
       if (allowedBoards.length === 0) {
-        select.innerHTML = '<option value="">当前账号没有发帖权限</option>';
+        select.innerHTML =
+          '<option value="">当前账号没有发帖权限</option>';
+
+        updatePostLocationAvailability();
         return;
       }
 
-      select.innerHTML = '<option value="">请选择板块</option>' +
+      select.innerHTML =
+        '<option value="">请选择板块</option>' +
         allowedBoards.map(function (board) {
-          return '<option value="' +
-            escapeHtml(board.slug) +
-            '">' +
-            escapeHtml(board.name) +
-            '</option>';
+          var boardType =
+            board.boardType ||
+            board.board_type ||
+            "";
+
+          return (
+            '<option ' +
+              'value="' + escapeHtml(board.slug) + '" ' +
+              'data-board-type="' +
+                escapeHtml(boardType) +
+              '">' +
+              escapeHtml(board.name) +
+            '</option>'
+          );
         }).join("");
+
+      if (
+        currentBoardContext &&
+        currentBoardContext.slug
+      ) {
+        var wantedSlug =
+          String(currentBoardContext.slug);
+
+        var canSelectCurrentBoard =
+          allowedBoards.some(function (board) {
+            return String(board.slug) === wantedSlug;
+          });
+
+        if (canSelectCurrentBoard) {
+          select.value = wantedSlug;
+        }
+      }
+
+      select.addEventListener(
+        "change",
+        updatePostLocationAvailability
+      );
+
+      updatePostLocationAvailability();
     })
     .catch(function () {
-      select.innerHTML = '<option value="">板块加载失败</option>';
+      select.innerHTML =
+        '<option value="">板块加载失败</option>';
+
+      updatePostLocationAvailability();
+    });
+}
+
+function updatePostLocationAvailability() {
+  var boardSelect =
+    document.getElementById("mPostBoard");
+
+  var locationField =
+    document.getElementById("mPostLocationField");
+
+  var locationInput =
+    document.getElementById("mPostLocation");
+
+  var locationOptions =
+    document.getElementById("mPostLocationOptions");
+
+  if (
+    !boardSelect ||
+    !locationField ||
+    !locationInput
+  ) {
+    return;
+  }
+
+  var selectedOption =
+    boardSelect.options[boardSelect.selectedIndex];
+
+  var boardType = selectedOption
+    ? String(
+        selectedOption.getAttribute("data-board-type") ||
+        ""
+      )
+    : "";
+
+  var isStoryBoard =
+    /story|剧情/i.test(boardType);
+
+  if (isStoryBoard) {
+    locationField.style.display = "block";
+    locationInput.disabled = false;
+    return;
+  }
+
+  locationField.style.display = "none";
+  locationInput.disabled = true;
+  locationInput.value = "";
+
+  if (locationOptions) {
+    locationOptions.innerHTML = "";
+    locationOptions.classList.remove("show");
+  }
+}
+
+/* ========== 发帖位置搜索和选择 ========== */
+function bindPostLocationPicker() {
+  var input = document.getElementById("mPostLocation");
+  var optionsBox = document.getElementById("mPostLocationOptions");
+
+  if (!input || !optionsBox) return;
+
+  var allLocations = [];
+  var locationLoaded = false;
+
+  function hideOptionsLater() {
+    setTimeout(function () {
+      optionsBox.classList.remove("show");
+    }, 180);
+  }
+
+  function renderLocationOptions() {
+    var keyword = input.value.trim();
+    var lowerKeyword = keyword.toLowerCase();
+
+    var matchedLocations = allLocations.filter(function (location) {
+      return String(location.name || "")
+        .toLowerCase()
+        .indexOf(lowerKeyword) !== -1;
+    });
+
+    var exactLocation = allLocations.some(function (location) {
+      return String(location.name || "").toLowerCase() === lowerKeyword;
+    });
+
+    var html = "";
+
+    matchedLocations.slice(0, 30).forEach(function (location) {
+      html +=
+        '<button ' +
+          'type="button" ' +
+          'class="m-location-option" ' +
+          'data-location-name="' + escapeHtml(location.name) + '">' +
+          '<span class="m-location-option-name">' +
+            escapeHtml(location.name) +
+          '</span>' +
+        '</button>';
+    });
+
+    if (keyword && !exactLocation) {
+      html +=
+        '<button ' +
+          'type="button" ' +
+          'class="m-location-option m-location-custom-option" ' +
+          'data-location-name="' + escapeHtml(keyword) + '">' +
+          '<span class="m-location-option-name">' +
+            '使用“' + escapeHtml(keyword) + '”' +
+          '</span>' +
+        '</button>';
+    }
+
+    if (!html && !keyword) {
+      html =
+        '<div class="m-location-empty">' +
+          (
+            locationLoaded
+              ? "暂时没有可选位置"
+              : "正在读取位置..."
+          ) +
+        '</div>';
+    }
+
+    optionsBox.innerHTML = html;
+    optionsBox.classList.add("show");
+  }
+
+  optionsBox.addEventListener("click", function (event) {
+    var option = event.target.closest(".m-location-option");
+
+    if (!option) return;
+
+    var locationName = option.getAttribute("data-location-name") || "";
+
+    input.value = locationName;
+    optionsBox.classList.remove("show");
+    input.focus();
+  });
+
+  input.addEventListener("focus", function () {
+    renderLocationOptions();
+  });
+
+  input.addEventListener("input", function () {
+    renderLocationOptions();
+  });
+
+  input.addEventListener("blur", hideOptionsLater);
+
+  mFetch("/api/locations")
+    .then(function (res) {
+      if (
+        res.ok &&
+        res.data &&
+        Array.isArray(res.data.locations)
+      ) {
+        allLocations = res.data.locations;
+      } else {
+        allLocations = [];
+      }
+
+      locationLoaded = true;
+
+      if (document.activeElement === input) {
+        renderLocationOptions();
+      }
+    })
+    .catch(function () {
+      allLocations = [];
+      locationLoaded = true;
+
+      if (document.activeElement === input) {
+        renderLocationOptions();
+      }
     });
 }
 
@@ -1492,9 +2250,26 @@ function submitMobilePost() {
   if (!boardSelect || !titleInput || !contentInput) return;
 
   var boardSlug = boardSelect.value.trim();
-  var title = titleInput.value.trim();
-  var postContent = contentInput.value.trim();
-  var location = locationInput ? locationInput.value.trim() : "";
+var title = titleInput.value.trim();
+var postContent = contentInput.value.trim();
+
+var selectedBoardOption =
+  boardSelect.options[boardSelect.selectedIndex];
+
+var selectedBoardType = selectedBoardOption
+  ? String(
+      selectedBoardOption.getAttribute("data-board-type") ||
+      ""
+    )
+  : "";
+
+var canUseLocation =
+  /story|剧情/i.test(selectedBoardType);
+
+var location =
+  canUseLocation && locationInput
+    ? locationInput.value.trim()
+    : "";
 
   var tags = tagsInput
     ? tagsInput.value
@@ -1881,10 +2656,15 @@ function sendMobileReply() {
     {
       method: "POST",
       body: JSON.stringify({
-        content: replyContent,
-        authorStudentId: currentAccount.studentId,
-        authorForumId: currentAccount.name || currentAccount.studentId
-      })
+  content: replyContent,
+  replyCommentId:
+    replyQuoteState && replyQuoteState.commentId
+      ? replyQuoteState.commentId
+      : null,
+  authorStudentId: currentAccount.studentId,
+  authorForumId: currentAccount.name || currentAccount.studentId
+})
+
     }
   )
     .then(function (res) {
@@ -1894,6 +2674,15 @@ function sendMobileReply() {
       }
 
       input.value = "";
+      replyQuoteState = null;
+
+      var replyInput2 = document.getElementById("mReplyInput");
+      if (replyInput2) {
+        replyInput2.setAttribute(
+          "placeholder",
+          "写下你的回复..."
+        );
+      }
 
       return mFetch(
         "/api/threads/" +
@@ -1944,3 +2733,43 @@ if (mobileReplyInput) {
     }
   });
 }
+
+/* ========== 从分享链接自动定位评论 ========== */
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var threadId = params.get("thread");
+  var commentId = params.get("comment");
+
+  if (!threadId) return;
+
+  if (commentId) {
+    pendingScrollCommentId = commentId;
+  }
+
+  var tryOpenSharedThread = function (retryCount) {
+    if (typeof renderThreadPage !== "function") {
+      if (retryCount > 0) {
+        setTimeout(function () {
+          tryOpenSharedThread(retryCount - 1);
+        }, 300);
+      }
+      return;
+    }
+
+    if (String(currentThreadId || "") === String(threadId)) {
+      if (pendingScrollCommentId) {
+        setTimeout(function () {
+          scrollToComment(pendingScrollCommentId);
+          pendingScrollCommentId = null;
+        }, 200);
+      }
+      return;
+    }
+
+    renderThreadPage(threadId);
+  };
+
+  setTimeout(function () {
+    tryOpenSharedThread(8);
+  }, 400);
+})();

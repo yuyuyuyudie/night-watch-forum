@@ -95,6 +95,7 @@ function getGroupChatStorageKey() {
 
 let normaGroupsCache = [];
 let realFriendRequestItems = [];
+let locationManageCache = [];
 let lastUserSearchResults = [];
 
 // 诺玛：论坛助手 bot，登录后永远在好友列表里，不用加好友
@@ -6834,6 +6835,57 @@ async function handleNormaPanelCommand(text, chat, body) {
     }
   }
 
+    // ====== 管理剧情位置 ======\n
+  if (
+    command === "/管理IP" ||
+    command === "/管理ip" ||
+    command === "/位置管理"
+  ) {
+    pushChatMessage(chat, "me", text);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/norma/can-manage`, {
+        headers: {
+          Authorization: `Bearer ${state.authToken || ""}`
+        }
+      });
+
+      const data = await res.json();
+
+      if (!data.canManage) {
+        pushChatMessage(
+          chat,
+          "other",
+          "权限不足。管理剧情位置需要拥有“管理组”身份组。"
+        );
+        renderPrivateChatBody(chat, body);
+        renderSidebarMessages();
+        return true;
+      }
+
+      pushChatMessage(
+        chat,
+        "other",
+        "权限验证通过。已打开剧情位置管理面板。"
+      );
+
+      renderPrivateChatBody(chat, body);
+      renderSidebarMessages();
+
+      openLocationManagePanel();
+      return true;
+    } catch (error) {
+      pushChatMessage(
+        chat,
+        "other",
+        "无法验证管理权限，请确认后端已启动。"
+      );
+      renderPrivateChatBody(chat, body);
+      renderSidebarMessages();
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -8047,3 +8099,407 @@ function bindNormaInlinePanels(chat, body) {
   });
 }
 
+/* ========== 诺玛：/管理IP 剧情位置管理 ========== */
+
+function ensureLocationManagePanel() {
+  let overlay = document.getElementById("locationManageOverlay");
+
+  if (overlay) return overlay;
+
+  overlay = document.createElement("div");
+  overlay.id = "locationManageOverlay";
+  overlay.className = "location-manage-overlay";
+  overlay.style.display = "none";
+
+  overlay.innerHTML = `
+    <div class="location-manage-panel">
+      <div class="location-manage-header">
+        <div>
+          <div class="location-manage-title">剧情位置管理</div>
+          <div class="location-manage-sub">通过 /管理IP 打开 · 仅管理组可用</div>
+        </div>
+        <button type="button" class="location-manage-close" id="locationManageCloseBtn">关闭</button>
+      </div>
+
+      <div class="location-manage-toolbar">
+        <input
+          id="locationManageSearchInput"
+          class="location-manage-input"
+          type="text"
+          placeholder="搜索位置..."
+        />
+        <button type="button" class="location-manage-btn" id="locationManageSearchBtn">搜索</button>
+      </div>
+
+      <div class="location-manage-add">
+        <input
+          id="locationManageNameInput"
+          class="location-manage-input"
+          type="text"
+          maxlength="80"
+          placeholder="新位置名称，例如：芝加哥地铁站"
+        />
+        <input
+          id="locationManageSortInput"
+          class="location-manage-input location-manage-sort"
+          type="number"
+          value="0"
+          placeholder="排序"
+        />
+        <button type="button" class="location-manage-btn primary" id="locationManageAddBtn">添加</button>
+      </div>
+
+      <div class="location-manage-list" id="locationManageList">
+        <div class="location-manage-empty">正在加载...</div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document
+    .getElementById("locationManageCloseBtn")
+    .addEventListener("click", closeLocationManagePanel);
+
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeLocationManagePanel();
+  });
+
+  document
+    .getElementById("locationManageSearchBtn")
+    .addEventListener("click", () => {
+      loadLocationManageList();
+    });
+
+  document
+    .getElementById("locationManageSearchInput")
+    .addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        loadLocationManageList();
+      }
+    });
+
+  document
+    .getElementById("locationManageAddBtn")
+    .addEventListener("click", addLocationFromManagePanel);
+
+  return overlay;
+}
+
+function openLocationManagePanel() {
+  const account = state.currentAccount || state.account;
+
+  if (!account) {
+    alert("请先登录");
+    return;
+  }
+
+  const groups = Array.isArray(account.identityGroups)
+    ? account.identityGroups
+    : [];
+
+  const isAdmin = groups.some((group) => {
+    const name =
+      typeof group === "object"
+        ? group.text || group.name || ""
+        : String(group || "");
+
+    return /管理|admin/i.test(name);
+  });
+
+  if (!isAdmin) {
+    alert("只有管理组可以使用 /管理IP");
+    return;
+  }
+
+  const overlay = ensureLocationManagePanel();
+  overlay.style.display = "flex";
+
+  const searchInput = document.getElementById("locationManageSearchInput");
+  if (searchInput) searchInput.value = "";
+
+  loadLocationManageList();
+}
+
+function closeLocationManagePanel() {
+  const overlay = document.getElementById("locationManageOverlay");
+  if (overlay) overlay.style.display = "none";
+}
+
+async function loadLocationManageList() {
+  const list = document.getElementById("locationManageList");
+  const searchInput = document.getElementById("locationManageSearchInput");
+
+  if (!list) return;
+
+  list.innerHTML = `<div class="location-manage-empty">正在加载...</div>`;
+
+  const keyword = searchInput ? searchInput.value.trim() : "";
+  const query = keyword
+    ? `?q=${encodeURIComponent(keyword)}`
+    : "";
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/norma/locations${query}`,
+      {
+        headers: {
+          ...(state.authToken
+            ? { Authorization: `Bearer ${state.authToken}` }
+            : {})
+        }
+      }
+    );
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      list.innerHTML = `<div class="location-manage-empty">${
+        data.message || "读取失败"
+      }</div>`;
+      return;
+    }
+
+    locationManageCache = Array.isArray(data.locations)
+      ? data.locations
+      : [];
+
+    if (!locationManageCache.length) {
+      list.innerHTML = `<div class="location-manage-empty">暂时没有位置，先添加一个吧</div>`;
+      return;
+    }
+
+    list.innerHTML = locationManageCache
+      .map((item) => {
+        const statusText =
+          item.status === "inactive" ? "已停用" : "启用中";
+
+        return `
+          <div class="location-manage-item" data-id="${item.id}">
+            <div class="location-manage-item-main">
+              <div class="location-manage-item-name">${escapeHtmlText(
+                item.name || ""
+              )}</div>
+              <div class="location-manage-item-meta">
+                排序 ${Number(item.sortOrder || 0)} · ${statusText}
+              </div>
+            </div>
+            <div class="location-manage-item-actions">
+              <button type="button" data-act="edit">修改</button>
+              <button type="button" data-act="toggle">
+                ${item.status === "inactive" ? "启用" : "停用"}
+              </button>
+              <button type="button" class="danger" data-act="delete">删除</button>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    list.querySelectorAll(".location-manage-item").forEach((row) => {
+      const id = Number(row.getAttribute("data-id"));
+
+      row.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const act = btn.getAttribute("data-act");
+
+          if (act === "edit") {
+            await editLocationFromManagePanel(id);
+          } else if (act === "toggle") {
+            await toggleLocationFromManagePanel(id);
+          } else if (act === "delete") {
+            await deleteLocationFromManagePanel(id);
+          }
+        });
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    list.innerHTML = `<div class="location-manage-empty">请求失败</div>`;
+  }
+}
+
+async function addLocationFromManagePanel() {
+  const nameInput = document.getElementById("locationManageNameInput");
+  const sortInput = document.getElementById("locationManageSortInput");
+
+  const name = nameInput ? nameInput.value.trim() : "";
+  const sortOrder = sortInput ? Number(sortInput.value || 0) : 0;
+
+  if (!name) {
+    alert("请输入位置名称");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/norma/locations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(state.authToken
+          ? { Authorization: `Bearer ${state.authToken}` }
+          : {})
+      },
+      body: JSON.stringify({
+        name,
+        sortOrder
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      alert(data.message || "添加失败");
+      return;
+    }
+
+    if (nameInput) nameInput.value = "";
+    if (sortInput) sortInput.value = "0";
+
+    await loadLocationManageList();
+    alert(data.message || "添加成功");
+  } catch (error) {
+    console.error(error);
+    alert("请求失败");
+  }
+}
+
+async function editLocationFromManagePanel(id) {
+  const target = locationManageCache.find(
+    (item) => Number(item.id) === Number(id)
+  );
+
+  if (!target) return;
+
+  const nextName = prompt("修改位置名称：", target.name || "");
+  if (nextName === null) return;
+
+  const nextSortText = prompt(
+    "修改排序数字（越小越靠前）：",
+    String(target.sortOrder || 0)
+  );
+  if (nextSortText === null) return;
+
+  const nextSort = Number(nextSortText);
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/norma/locations/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(state.authToken
+            ? { Authorization: `Bearer ${state.authToken}` }
+            : {})
+        },
+        body: JSON.stringify({
+          name: String(nextName || "").trim(),
+          sortOrder: Number.isFinite(nextSort) ? nextSort : 0,
+          status: target.status || "active"
+        })
+      }
+    );
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      alert(data.message || "修改失败");
+      return;
+    }
+
+    await loadLocationManageList();
+  } catch (error) {
+    console.error(error);
+    alert("请求失败");
+  }
+}
+
+async function toggleLocationFromManagePanel(id) {
+  const target = locationManageCache.find(
+    (item) => Number(item.id) === Number(id)
+  );
+
+  if (!target) return;
+
+  const nextStatus =
+    target.status === "inactive" ? "active" : "inactive";
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/norma/locations/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(state.authToken
+            ? { Authorization: `Bearer ${state.authToken}` }
+            : {})
+        },
+        body: JSON.stringify({
+          name: target.name,
+          sortOrder: Number(target.sortOrder || 0),
+          status: nextStatus
+        })
+      }
+    );
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      alert(data.message || "操作失败");
+      return;
+    }
+
+    await loadLocationManageList();
+  } catch (error) {
+    console.error(error);
+    alert("请求失败");
+  }
+}
+
+async function deleteLocationFromManagePanel(id) {
+  const target = locationManageCache.find(
+    (item) => Number(item.id) === Number(id)
+  );
+
+  if (!target) return;
+
+  if (!confirm(`确定删除位置“${target.name}”吗？`)) return;
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/norma/locations/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: {
+          ...(state.authToken
+            ? { Authorization: `Bearer ${state.authToken}` }
+            : {})
+        }
+      }
+    );
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      alert(data.message || "删除失败");
+      return;
+    }
+
+    await loadLocationManageList();
+  } catch (error) {
+    console.error(error);
+    alert("请求失败");
+  }
+}
+
+function escapeHtmlText(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}

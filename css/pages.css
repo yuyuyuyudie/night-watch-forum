@@ -3035,3 +3035,131 @@ body.auth-locked .auth-window {
   max-height: 85vh;
   overflow-y: auto;
 }
+
+/* ========== 诺玛 /管理IP 位置管理面板 ========== */
+.location-manage-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 20px;
+}
+
+.location-manage-panel {
+  width: min(720px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line-dark, rgba(255,255,255,0.12));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  padding: 16px;
+}
+
+.location-manage-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.location-manage-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.location-manage-sub {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.location-manage-close,
+.location-manage-btn {
+  border: 0;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.location-manage-btn.primary {
+  background: #2f6fed;
+  color: #fff;
+}
+
+.location-manage-toolbar,
+.location-manage-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.location-manage-input {
+  flex: 1;
+  min-width: 160px;
+  border: 1px solid var(--line-dark, rgba(255,255,255,0.12));
+  background: var(--input-bg, var(--panel));
+  color: var(--text);
+  padding: 8px 10px;
+}
+
+.location-manage-sort {
+  max-width: 100px;
+  flex: 0 0 100px;
+}
+
+.location-manage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.location-manage-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line-dark, rgba(255,255,255,0.08));
+}
+
+.location-manage-item-name {
+  font-weight: 700;
+}
+
+.location-manage-item-meta {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.location-manage-item-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.location-manage-item-actions button {
+  border: 0;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.location-manage-item-actions button.danger {
+  color: #e44;
+}
+
+.location-manage-empty {
+  padding: 18px 10px;
+  text-align: center;
+  color: var(--muted);
+}
