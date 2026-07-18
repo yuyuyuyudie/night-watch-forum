@@ -537,3 +537,79 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* ========== 发帖页面 ========== */
+.m-post-form-card {
+  margin-bottom: 0;
+}
+
+.m-post-content-input {
+  min-height: 220px;
+}
+
+/* ========== 详情页置顶标 ========== */
+.m-thread-detail-pin-line {
+  display: flex;
+  align-items: center;
+  margin-bottom: 9px;
+}
+
+/* ========== 作者编辑时间 ========== */
+.m-thread-detail-author-name-row,
+.m-thread-detail-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.m-thread-edited-label,
+.m-thread-edited-time {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* ========== 标签和位置 ========== */
+.m-thread-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.m-thread-detail-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.m-thread-detail-location {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ========== 评论中的用户链接 ========== */
+.m-mention-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4b8fe8;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.m-mention-link:active {
+  opacity: 0.65;
+}

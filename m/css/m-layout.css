@@ -2145,3 +2145,35 @@
   color: var(--muted);
   font-size: 14px;
 }
+
+/* ========== 发帖页面底部发布栏 ========== */
+.m-bottom-publish {
+  display: none;
+  align-items: center;
+  width: 100%;
+  min-height: 64px;
+  padding: 9px 14px;
+  padding-bottom: calc(9px + env(safe-area-inset-bottom));
+  background: var(--panel);
+  border-top: 1px solid var(--line-dark);
+  flex-shrink: 0;
+}
+
+.m-bottom-publish button {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--panel-2);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.m-bottom-publish button:active {
+  opacity: 0.8;
+}
+
+.m-bottom-publish button:disabled {
+  opacity: 0.55;
+}

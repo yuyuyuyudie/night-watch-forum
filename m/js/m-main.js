@@ -22,6 +22,8 @@ var themeToggleBtn = document.getElementById("mThemeToggleBtn");
 var appEl = document.getElementById("app");
 var tabBar = document.getElementById("mTabBar");
 var bottomReply = document.getElementById("mBottomReply");
+var bottomPublish = document.getElementById("mBottomPublish");
+var bottomPublishBtn = document.getElementById("mPostSubmit");
 
 /* ========== SVG 图标 ========== */
 var ICO = {
@@ -173,9 +175,29 @@ function isAdmin() {
 /* ========== 顶部 / 底部 ========== */
 function showBackOnly() { if (backBtn) backBtn.style.display = "flex"; if (searchBtn) searchBtn.style.display = "none"; }
 function showSearchOnly() { if (backBtn) backBtn.style.display = "none"; if (searchBtn) searchBtn.style.display = "flex"; }
-function showTabBar() { if (tabBar) tabBar.style.display = "flex"; if (bottomReply) bottomReply.style.display = "none"; }
-function showReplyBar() { if (tabBar) tabBar.style.display = "none"; if (bottomReply) bottomReply.style.display = "flex"; }
-function hideBottomBar() { if (tabBar) tabBar.style.display = "none"; if (bottomReply) bottomReply.style.display = "none"; }
+function showTabBar() {
+  if (tabBar) tabBar.style.display = "flex";
+  if (bottomReply) bottomReply.style.display = "none";
+  if (bottomPublish) bottomPublish.style.display = "none";
+}
+
+function showReplyBar() {
+  if (tabBar) tabBar.style.display = "none";
+  if (bottomReply) bottomReply.style.display = "flex";
+  if (bottomPublish) bottomPublish.style.display = "none";
+}
+
+function showPublishBar() {
+  if (tabBar) tabBar.style.display = "none";
+  if (bottomReply) bottomReply.style.display = "none";
+  if (bottomPublish) bottomPublish.style.display = "flex";
+}
+
+function hideBottomBar() {
+  if (tabBar) tabBar.style.display = "none";
+  if (bottomReply) bottomReply.style.display = "none";
+  if (bottomPublish) bottomPublish.style.display = "none";
+}
 
 function setActiveTab(tabName) {
   currentTab = tabName;
@@ -187,8 +209,17 @@ var themeSvgNight = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"
 var themeSvgDay = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
 var menuSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>';
 
+function hideRightButton() {
+  if (!themeToggleBtn) return;
+
+  themeToggleBtn.style.display = "none";
+  themeToggleBtn.onclick = null;
+}
+
 function showThemeButton() {
   if (!themeToggleBtn) return;
+
+  themeToggleBtn.style.display = "flex";
   themeToggleBtn.innerHTML = localStorage.getItem("m_forum_theme_mode") !== "day" ? themeSvgNight : themeSvgDay;
   themeToggleBtn.onclick = function () {
     var next = localStorage.getItem("m_forum_theme_mode") === "night" ? "day" : "night";
@@ -198,6 +229,8 @@ function showThemeButton() {
 
 function showMenuButton() {
   if (!themeToggleBtn) return;
+
+  themeToggleBtn.style.display = "flex";
   themeToggleBtn.innerHTML = menuSvg;
   themeToggleBtn.onclick = function () { showThreadMenu(); };
 }
@@ -451,20 +484,56 @@ if (searchBtn) searchBtn.addEventListener("click", function () { alert("搜索�
 
 if (backBtn) backBtn.addEventListener("click", function () {
   closeThreadMenu();
-  if (backTarget === "setting") { switchTab("setting"); backTarget = "home"; }
-  else { switchTab("home"); }
+
+  if (backTarget === "setting") {
+    backTarget = "home";
+    switchTab("setting");
+    return;
+  }
+
+  if (backTarget === "thread" && currentThreadId) {
+    backTarget = "home";
+    renderThreadPage(currentThreadId, currentThreadSlug);
+    return;
+  }
+
+  switchTab("home");
 });
 
 function switchTab(t) {
   setActiveTab(t);
+  currentThreadData = null;
+
+  if (t === "post") {
+    backTarget = "home";
+    headerTitle.textContent = "发帖";
+    showBackOnly();
+    hideRightButton();
+    showPublishBar();
+    renderPost();
+    return;
+  }
+
   showTabBar();
   showThemeButton();
-  currentThreadData = null;
-  if (t === "home")      { headerTitle.textContent = "守夜人论坛"; showSearchOnly(); renderHome(); }
-  else if (t === "archive") { headerTitle.textContent = "档案"; showSearchOnly(); renderArchive(); }
-  else if (t === "post")    { headerTitle.textContent = "发帖"; showSearchOnly(); renderPost(); }
-  else if (t === "message") { headerTitle.textContent = "消息"; showSearchOnly(); renderMessage(); }
-  else if (t === "setting") { headerTitle.textContent = "设置"; showSearchOnly(); renderSetting(); }
+
+  if (t === "home") {
+    headerTitle.textContent = "守夜人论坛";
+    showSearchOnly();
+    renderHome();
+  } else if (t === "archive") {
+    headerTitle.textContent = "档案";
+    showSearchOnly();
+    renderArchive();
+  } else if (t === "message") {
+    headerTitle.textContent = "消息";
+    showSearchOnly();
+    renderMessage();
+  } else if (t === "setting") {
+    headerTitle.textContent = "设置";
+    showSearchOnly();
+    renderSetting();
+  }
 }
 
 /* ========== 登录 ========== */
@@ -879,6 +948,8 @@ html +=
    帖子详情
    ========================================================== */
 function renderThreadPage(threadId, slug) {
+  currentThreadId = threadId;
+  currentThreadSlug = slug || "";
   backTarget = "home";
   headerTitle.textContent = "帖子详情";
   showBackOnly();
@@ -927,75 +998,350 @@ function renderThreadPage(threadId, slug) {
   });
 }
 
+var mentionAccountCache = {};
+
+function renderCommentText(text) {
+  var safeText = escapeHtml(String(text || ""));
+
+  safeText = safeText.replace(
+    /@([A-Za-z][A-Za-z0-9_-]{2,31})/g,
+    function (fullText, studentId) {
+      return '<button type="button" class="m-mention-link" ' +
+        'data-student-id="' + studentId.toUpperCase() + '">@</button>';
+    }
+  );
+
+  return safeText.replace(/\n/g, "<br>");
+}
+
+function loadCommentMentions(root) {
+  if (!root) return;
+
+  root.querySelectorAll(".m-mention-link").forEach(function (button) {
+    var studentId = String(
+      button.getAttribute("data-student-id") || ""
+    ).toUpperCase();
+
+    if (!studentId) return;
+
+    button.onclick = function () {
+      renderMentionProfilePage(studentId);
+    };
+
+    if (mentionAccountCache[studentId]) {
+      button.textContent = "@" + mentionAccountCache[studentId].forumId;
+      return;
+    }
+
+    mFetch("/api/account-preview/" + encodeURIComponent(studentId))
+      .then(function (res) {
+        if (
+          res.ok &&
+          res.data &&
+          res.data.account &&
+          res.data.account.forumId
+        ) {
+          mentionAccountCache[studentId] = res.data.account;
+          button.textContent = "@" + res.data.account.forumId;
+          return;
+        }
+
+        button.textContent = "@" + studentId;
+      })
+      .catch(function () {
+        button.textContent = "@" + studentId;
+      });
+  });
+}
+
+function renderMentionProfilePage(studentId) {
+  backTarget = "thread";
+  headerTitle.textContent = "个人主页";
+  showBackOnly();
+  hideBottomBar();
+  showThemeButton();
+
+  content.innerHTML = '<div class="m-loading">加载中</div>';
+
+  mFetch("/api/users/" + encodeURIComponent(studentId))
+    .then(function (res) {
+      if (res.ok && res.data && res.data.user) {
+        paintMentionProfile(res.data.user);
+        return;
+      }
+
+      return mFetch(
+        "/api/account-preview/" + encodeURIComponent(studentId)
+      ).then(function (previewRes) {
+        if (
+          previewRes.ok &&
+          previewRes.data &&
+          previewRes.data.account
+        ) {
+          paintMentionProfile(previewRes.data.account);
+          return;
+        }
+
+        content.innerHTML =
+          '<div class="m-empty">没有找到该用户</div>';
+      });
+    })
+    .catch(function () {
+      content.innerHTML =
+        '<div class="m-empty">个人主页加载失败</div>';
+    });
+}
+
+function paintMentionProfile(user) {
+  var studentId =
+    user.studentId ||
+    user.code ||
+    "";
+
+  var forumId =
+    user.forumId ||
+    user.name ||
+    studentId ||
+    "未命名用户";
+
+  var avatar =
+    user.avatar ||
+    defaultAvatar(studentId || forumId);
+
+  var signature =
+    user.signature ||
+    user.desc ||
+    "";
+
+  var groups = Array.isArray(user.identityGroups)
+    ? user.identityGroups
+    : [];
+
+  var groupsHtml = groups.length
+    ? '<div class="m-profile-owned-list">' +
+        groups.map(function (group) {
+          var text =
+            typeof group === "object"
+              ? (group.text || group.name || "")
+              : group;
+
+          var color =
+            typeof group === "object" && group.color
+              ? group.color
+              : "#262626";
+
+          return '<span class="m-profile-owned-tag" style="background:' +
+            escapeHtml(color) +
+            ';">' +
+            escapeHtml(text) +
+            '</span>';
+        }).join("") +
+      '</div>'
+    : "";
+
+  content.innerHTML =
+    '<div class="m-profile-page-card">' +
+      '<div class="m-profile-page-avatar">' +
+        '<img src="' + escapeHtml(avatar) + '" ' +
+          'style="width:100%;height:100%;border-radius:50%;object-fit:cover;">' +
+      '</div>' +
+
+      '<div class="m-profile-page-name-row">' +
+        '<span class="m-profile-page-name">' +
+          escapeHtml(forumId) +
+        '</span>' +
+      '</div>' +
+
+      '<div class="m-profile-page-student">' +
+        '学号: ' + escapeHtml(studentId || "-") +
+      '</div>' +
+
+      (
+        signature
+          ? '<div class="m-profile-page-bio">' +
+              escapeHtml(signature) +
+            '</div>'
+          : ""
+      ) +
+
+      groupsHtml +
+    '</div>';
+}
+
 function paintThread(t, comments) {
   comments = Array.isArray(comments) ? comments : [];
 
-  var authorName = t.author || t.authorForumId || t.authorName || "匿名";
-  var authorSid = t.authorStudentId || t.studentId || "";
-  var authorAvatar = t.authorAvatar || defaultAvatar(authorSid || authorName);
+  var authorName =
+    t.author ||
+    t.authorForumId ||
+    t.authorName ||
+    "匿名";
+
+  var authorSid =
+    t.authorStudentId ||
+    t.studentId ||
+    "";
+
+  var authorAvatar =
+    t.authorAvatar ||
+    defaultAvatar(authorSid || authorName);
 
   var detailPinnedClass = isThreadPinned(t)
     ? " m-thread-detail-pinned"
     : "";
 
   var detailPinnedMark = isThreadPinned(t)
-    ? '<span class="m-pinned-mark">置顶</span>'
+    ? '<div class="m-thread-detail-pin-line">' +
+        '<span class="m-pinned-mark">置顶</span>' +
+      '</div>'
+    : "";
+
+  var authorEditedAt =
+    t.authorEditedAt ||
+    t.author_edited_at ||
+    "";
+
+  var authorEdited =
+    Number(t.authorEditCount || t.author_edit_count || 0) > 0 &&
+    Boolean(authorEditedAt);
+
+  var authorEditedLabel = authorEdited
+    ? '<span class="m-thread-edited-label">编辑于</span>'
+    : "";
+
+  var authorEditedTime = authorEdited
+    ? '<span class="m-thread-edited-time">' +
+        formatTime(authorEditedAt) +
+      '</span>'
+    : "";
+
+  var tags = Array.isArray(t.tags)
+    ? t.tags.filter(Boolean)
+    : [];
+
+  var tagsHtml = tags.length
+    ? '<div class="m-thread-detail-tags">' +
+        tags.map(function (tag) {
+          return '<span class="m-thread-detail-tag">' +
+            escapeHtml(tag) +
+          '</span>';
+        }).join("") +
+      '</div>'
+    : "";
+
+  var location =
+    t.location ||
+    t.postLocation ||
+    t.post_location ||
+    "";
+
+  var locationHtml = location
+    ? '<div class="m-thread-detail-location">' +
+        escapeHtml(location) +
+      '</div>'
     : "";
 
   content.innerHTML =
     '<div class="m-thread-detail' + detailPinnedClass + '">' +
+
+      detailPinnedMark +
+
       '<div class="m-thread-detail-title-row">' +
-  detailPinnedMark +
-  '<div class="m-thread-detail-title">' +
-    escapeHtml(t.title || "无标题") +
-  '</div>' +
-'</div>' +
+        '<div class="m-thread-detail-title">' +
+          escapeHtml(t.title || "无标题") +
+        '</div>' +
+      '</div>' +
 
       '<div class="m-thread-detail-author">' +
         '<img class="m-thread-detail-avatar" src="' +
           escapeHtml(authorAvatar) +
         '">' +
+
         '<div class="m-thread-detail-author-info">' +
-          '<div class="m-thread-detail-author-name">' +
-            escapeHtml(authorName) +
+
+          '<div class="m-thread-detail-author-name-row">' +
+            '<div class="m-thread-detail-author-name">' +
+              escapeHtml(authorName) +
+            '</div>' +
+            authorEditedLabel +
           '</div>' +
+
           '<div class="m-thread-detail-meta">' +
             '<span>' +
               formatTime(t.createdAt || t.created_at || t.time) +
             '</span>' +
+            authorEditedTime +
           '</div>' +
+
         '</div>' +
       '</div>' +
 
       '<div class="m-thread-detail-content">' +
-        escapeHtml(t.content || t.body || "（无正文）").replace(/\n/g, "<br>") +
+        escapeHtml(
+          t.content ||
+          t.body ||
+          "（无正文）"
+        ).replace(/\n/g, "<br>") +
       '</div>' +
+
+      tagsHtml +
+      locationHtml +
 
       buildActionBar(t) +
     '</div>' +
 
-    '<div class="m-section-title">回复 (' + comments.length + ')</div>' +
+    '<div class="m-section-title">回复 (' +
+      comments.length +
+    ')</div>' +
 
     '<div id="mReplyList">' +
       (
         comments.length
           ? comments.map(function (r) {
-              var isSystem = Boolean(r.isSystem || r.system_flag);
+              var isSystem = Boolean(
+                r.isSystem ||
+                r.system_flag
+              );
 
               var rName = isSystem
-                ? (r.author || r.authorForumId || "诺玛")
-                : (r.author || r.authorForumId || r.authorName || "匿名");
+                ? (
+                    r.author ||
+                    r.authorForumId ||
+                    "诺玛"
+                  )
+                : (
+                    r.author ||
+                    r.authorForumId ||
+                    r.authorName ||
+                    "匿名"
+                  );
 
-              var rSid = r.authorStudentId || r.studentId || "";
-              var rAvatar = r.avatar || r.authorAvatar ||
-                defaultAvatar(isSystem ? "norma-system" : (rSid || rName));
+              var rSid =
+                r.authorStudentId ||
+                r.studentId ||
+                "";
 
-              // 后端评论正文叫 text，兼容旧的 content
-              var rText = r.text != null ? r.text : (r.content || "");
+              var rAvatar =
+                r.avatar ||
+                r.authorAvatar ||
+                defaultAvatar(
+                  isSystem
+                    ? "norma-system"
+                    : (rSid || rName)
+                );
+
+              var rText =
+                r.text != null
+                  ? r.text
+                  : (r.content || "");
 
               var systemBadge = isSystem
                 ? '<span class="m-system-badge">' +
-                    escapeHtml(r.systemLabel || r.system_label || "系统提示") +
+                    escapeHtml(
+                      r.systemLabel ||
+                      r.system_label ||
+                      "系统提示"
+                    ) +
                   '</span>'
                 : "";
 
@@ -1008,19 +1354,25 @@ function paintThread(t, comments) {
                     '<img class="m-reply-avatar" src="' +
                       escapeHtml(rAvatar) +
                     '">' +
+
                     '<span class="m-reply-author">' +
                       escapeHtml(rName) +
                     '</span>' +
+
                     systemBadge +
                   '</div>' +
 
                   '<span class="m-reply-time">' +
-                    formatTime(r.createdAt || r.created_at || r.time) +
+                    formatTime(
+                      r.createdAt ||
+                      r.created_at ||
+                      r.time
+                    ) +
                   '</span>' +
                 '</div>' +
 
                 '<div class="m-reply-content">' +
-                  escapeHtml(rText).replace(/\n/g, "<br>") +
+                  renderCommentText(rText) +
                 '</div>' +
 
               '</div>';
@@ -1030,9 +1382,12 @@ function paintThread(t, comments) {
     '</div>';
 
   var detail = content.querySelector(".m-thread-detail");
+
   if (detail) {
     bindActionBar(detail, t.id);
   }
+
+  loadCommentMentions(content);
 }
 
 /* ========== 档案 / 发帖 / 消息 ========== */
@@ -1041,19 +1396,23 @@ function renderArchive() {
     '<div class="m-section-title">档案馆</div><div class="m-empty">暂未开启</div>' +
     '<div class="m-section-title">收藏库</div><div class="m-empty">暂无收藏</div>';
 }
+
 function renderPost() {
   if (!currentAccount || localAuthState.isGuest) {
+    hideBottomBar();
+
     content.innerHTML =
       '<div class="m-card">' +
-        '<h2>发布新帖</h2>' +
         '<p>请先登录正式账号后再发帖。</p>' +
       '</div>';
+
     return;
   }
 
+  showPublishBar();
+
   content.innerHTML =
     '<div class="m-card m-post-form-card">' +
-      '<h2>发布新帖</h2>' +
 
       '<label class="m-edit-label">选择板块</label>' +
       '<select class="m-edit-input" id="mPostBoard">' +
@@ -1064,17 +1423,25 @@ function renderPost() {
       '<input class="m-edit-input" id="mPostTitle" maxlength="100" placeholder="请输入帖子标题">' +
 
       '<label class="m-edit-label">正文</label>' +
-      '<textarea class="m-edit-textarea" id="mPostContent" placeholder="请输入帖子正文"></textarea>' +
+      '<textarea class="m-edit-textarea m-post-content-input" id="mPostContent" placeholder="请输入帖子正文"></textarea>' +
 
-      '<div class="m-edit-footer" style="padding:12px 0 0;border-top:0;">' +
-        '<button class="m-edit-save" id="mPostSubmit">发布帖子</button>' +
-      '</div>' +
+      '<label class="m-edit-label">标签</label>' +
+      '<input class="m-edit-input" id="mPostTags" maxlength="100" placeholder="多个标签用逗号隔开">' +
+
+      '<label class="m-edit-label">位置</label>' +
+      '<input class="m-edit-input" id="mPostLocation" maxlength="80" placeholder="输入位置">' +
+
     '</div>';
 
   loadPostBoards();
 
-  document.getElementById("mPostSubmit").addEventListener("click", submitMobilePost);
+  if (bottomPublishBtn) {
+    bottomPublishBtn.disabled = false;
+    bottomPublishBtn.textContent = "发布帖子";
+    bottomPublishBtn.onclick = submitMobilePost;
+  }
 }
+
 function loadPostBoards() {
   var select = document.getElementById("mPostBoard");
   if (!select) return;
@@ -1118,6 +1485,8 @@ function submitMobilePost() {
   var boardSelect = document.getElementById("mPostBoard");
   var titleInput = document.getElementById("mPostTitle");
   var contentInput = document.getElementById("mPostContent");
+  var tagsInput = document.getElementById("mPostTags");
+  var locationInput = document.getElementById("mPostLocation");
   var submitBtn = document.getElementById("mPostSubmit");
 
   if (!boardSelect || !titleInput || !contentInput) return;
@@ -1125,6 +1494,17 @@ function submitMobilePost() {
   var boardSlug = boardSelect.value.trim();
   var title = titleInput.value.trim();
   var postContent = contentInput.value.trim();
+  var location = locationInput ? locationInput.value.trim() : "";
+
+  var tags = tagsInput
+    ? tagsInput.value
+        .split(/[,，]/)
+        .map(function (tag) {
+          return tag.trim();
+        })
+        .filter(Boolean)
+        .slice(0, 10)
+    : [];
 
   if (!boardSlug) {
     alert("请选择板块");
@@ -1146,8 +1526,10 @@ function submitMobilePost() {
     return;
   }
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = "发布中";
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "发布中";
+  }
 
   mFetch("/api/boards/" + encodeURIComponent(boardSlug) + "/threads", {
     method: "POST",
@@ -1156,7 +1538,8 @@ function submitMobilePost() {
       content: postContent,
       summary: "",
       postType: "normal",
-      tags: [],
+      tags: tags,
+      location: location,
       authorStudentId: currentAccount.studentId,
       authorForumId: currentAccount.name || currentAccount.studentId
     })
@@ -1167,8 +1550,13 @@ function submitMobilePost() {
         return;
       }
 
-      alert("发帖成功");
-      switchTab("home");
+      var newThread = res.data.thread;
+
+      if (newThread && newThread.id) {
+        renderThreadPage(newThread.id, boardSlug);
+      } else {
+        switchTab("home");
+      }
     })
     .catch(function () {
       alert("请求失败");
