@@ -643,6 +643,8 @@ function renderHome() {
   showSearchOnly();
   showTabBar();
   content.innerHTML =
+    '<div id="mPinnedBanner" class="m-pinned-banner"></div>' +
+
     '<div class="m-board-drawer" id="mBoardDrawer">' +
       '<div class="m-board-drawer-header" id="mBoardDrawerHeader">' +
         '<div class="m-board-drawer-title">板块</div>' +
@@ -652,7 +654,7 @@ function renderHome() {
         '<div class="m-board-list-inner" id="mBoardGrid"><div class="m-loading">加载中</div></div>' +
       '</div>' +
     '</div>' +
-    '<div id="mPinnedBanner" class="m-pinned-banner"></div>' +
+
     '<div class="m-section-title">热门</div>' +
     '<div id="mHotList"><div class="m-loading">加载中</div></div>';
 
@@ -704,13 +706,10 @@ function loadHomePinned() {
     .then(function (res) {
       var items =
         res.data && Array.isArray(res.data.items)
-          ? res.data.items
+          ? res.data.items.slice(0, 3)
           : [];
 
-      if (
-        !res.ok ||
-        items.length === 0
-      ) {
+      if (!res.ok || items.length === 0) {
         box.innerHTML = "";
         box.style.display = "none";
         return;
@@ -718,43 +717,30 @@ function loadHomePinned() {
 
       box.style.display = "block";
 
-      var html =
-        '<div class="m-pinned-banner-head">' +
-          '<span class="m-pinned-banner-icon">📌</span>' +
-          '<span>置顶内容</span>' +
-        '</div>' +
-        '<div class="m-pinned-banner-list">';
+      var html = "";
 
       items.forEach(function (item) {
+        var threadId = item.id || item.threadId || item.thread_id;
         var boardSlug =
           item.boardSlug ||
+          item.board_slug ||
           (item.board && item.board.slug) ||
           "";
 
         html +=
           '<button class="m-pinned-banner-item" ' +
-            'data-thread-id="' + escapeHtml(item.id) + '" ' +
+            'data-thread-id="' + escapeHtml(threadId) + '" ' +
             'data-board-slug="' + escapeHtml(boardSlug) + '">' +
             '<span class="m-pinned-mark">置顶</span>' +
             '<span class="m-pinned-banner-title">' +
               escapeHtml(item.title || "无标题") +
             '</span>' +
-            '<span class="m-pinned-banner-board">' +
-              escapeHtml(
-                (item.board && item.board.name) ||
-                item.boardName ||
-                ""
-              ) +
-            '</span>' +
           '</button>';
       });
 
-      html += "</div>";
       box.innerHTML = html;
 
-      box.querySelectorAll(
-        ".m-pinned-banner-item"
-      ).forEach(function (item) {
+      box.querySelectorAll(".m-pinned-banner-item").forEach(function (item) {
         item.addEventListener("click", function () {
           var threadId = item.dataset.threadId;
           var slug = item.dataset.boardSlug;
@@ -869,7 +855,12 @@ html +=
             '</div>' +
             '<div class="m-thread-board-tag">' + (t.replyCount || t.replies || 0) + ' 回复</div>' +
           '</div>' +
-          '<div class="m-thread-title">' + escapeHtml(t.title || "无标题") + '</div>' +
+          '<div class="m-thread-title-row">' +
+  pinnedMark +
+  '<div class="m-thread-title">' +
+    escapeHtml(t.title || "无标题") +
+  '</div>' +
+'</div>' +
           buildActionBar(t) +
         '</div>';
     });
