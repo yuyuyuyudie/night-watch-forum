@@ -823,7 +823,7 @@ function renderBoardPage(slug, boardName) {
   backTarget = "home";
   headerTitle.textContent = boardName || "板块";
   showBackOnly(); showTabBar(); showThemeButton();
-  content.innerHTML = '<div class="m-section-title">' + escapeHtml(boardName || slug) + '</div><div id="mBoardThreads" class="m-loading">加载中</div>';
+  content.innerHTML = '<div id="mBoardThreads" class="m-loading">加载中</div>';
   mFetch("/api/boards/" + encodeURIComponent(slug) + "/threads").then(function (res) {
     var box = document.getElementById("mBoardThreads");
     if (!box) return;
@@ -1042,8 +1042,145 @@ function renderArchive() {
     '<div class="m-section-title">收藏库</div><div class="m-empty">暂无收藏</div>';
 }
 function renderPost() {
-  content.innerHTML = '<div class="m-card"><h2>发布新帖</h2><p>发帖表单后续再接后端</p></div>';
+  if (!currentAccount || localAuthState.isGuest) {
+    content.innerHTML =
+      '<div class="m-card">' +
+        '<h2>发布新帖</h2>' +
+        '<p>请先登录正式账号后再发帖。</p>' +
+      '</div>';
+    return;
+  }
+
+  content.innerHTML =
+    '<div class="m-card m-post-form-card">' +
+      '<h2>发布新帖</h2>' +
+
+      '<label class="m-edit-label">选择板块</label>' +
+      '<select class="m-edit-input" id="mPostBoard">' +
+        '<option value="">正在加载板块...</option>' +
+      '</select>' +
+
+      '<label class="m-edit-label">标题</label>' +
+      '<input class="m-edit-input" id="mPostTitle" maxlength="100" placeholder="请输入帖子标题">' +
+
+      '<label class="m-edit-label">正文</label>' +
+      '<textarea class="m-edit-textarea" id="mPostContent" placeholder="请输入帖子正文"></textarea>' +
+
+      '<div class="m-edit-footer" style="padding:12px 0 0;border-top:0;">' +
+        '<button class="m-edit-save" id="mPostSubmit">发布帖子</button>' +
+      '</div>' +
+    '</div>';
+
+  loadPostBoards();
+
+  document.getElementById("mPostSubmit").addEventListener("click", submitMobilePost);
 }
+function loadPostBoards() {
+  var select = document.getElementById("mPostBoard");
+  if (!select) return;
+
+  mFetch("/api/boards")
+    .then(function (res) {
+      var boards =
+        res.data && Array.isArray(res.data.boards)
+          ? res.data.boards
+          : [];
+
+      if (!res.ok || boards.length === 0) {
+        select.innerHTML = '<option value="">没有可用板块</option>';
+        return;
+      }
+
+      var allowedBoards = boards.filter(function (board) {
+        return board.canCurrentUserPost !== false;
+      });
+
+      if (allowedBoards.length === 0) {
+        select.innerHTML = '<option value="">当前账号没有发帖权限</option>';
+        return;
+      }
+
+      select.innerHTML = '<option value="">请选择板块</option>' +
+        allowedBoards.map(function (board) {
+          return '<option value="' +
+            escapeHtml(board.slug) +
+            '">' +
+            escapeHtml(board.name) +
+            '</option>';
+        }).join("");
+    })
+    .catch(function () {
+      select.innerHTML = '<option value="">板块加载失败</option>';
+    });
+}
+
+function submitMobilePost() {
+  var boardSelect = document.getElementById("mPostBoard");
+  var titleInput = document.getElementById("mPostTitle");
+  var contentInput = document.getElementById("mPostContent");
+  var submitBtn = document.getElementById("mPostSubmit");
+
+  if (!boardSelect || !titleInput || !contentInput) return;
+
+  var boardSlug = boardSelect.value.trim();
+  var title = titleInput.value.trim();
+  var postContent = contentInput.value.trim();
+
+  if (!boardSlug) {
+    alert("请选择板块");
+    return;
+  }
+
+  if (!title) {
+    alert("请输入标题");
+    return;
+  }
+
+  if (!postContent) {
+    alert("请输入正文");
+    return;
+  }
+
+  if (!currentAccount || !currentAccount.studentId) {
+    alert("请先登录");
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "发布中";
+
+  mFetch("/api/boards/" + encodeURIComponent(boardSlug) + "/threads", {
+    method: "POST",
+    body: JSON.stringify({
+      title: title,
+      content: postContent,
+      summary: "",
+      postType: "normal",
+      tags: [],
+      authorStudentId: currentAccount.studentId,
+      authorForumId: currentAccount.name || currentAccount.studentId
+    })
+  })
+    .then(function (res) {
+      if (!res.ok || !res.data || !res.data.success) {
+        alert((res.data && res.data.message) || "发帖失败");
+        return;
+      }
+
+      alert("发帖成功");
+      switchTab("home");
+    })
+    .catch(function () {
+      alert("请求失败");
+    })
+    .finally(function () {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "发布帖子";
+      }
+    });
+}
+
 function renderMessage() {
   content.innerHTML = '<div class="m-empty">暂无消息</div>';
 }
@@ -1320,3 +1457,102 @@ function saveThreadEdit(newTitle, newContent) {
     });
 }
 
+/* ========== 手机版发送评论 ========== */
+function sendMobileReply() {
+  var input = document.getElementById("mReplyInput");
+  var sendBtn = document.getElementById("mReplySendBtn");
+
+  if (!input) return;
+
+  if (!currentThreadData || !currentThreadData.id) {
+    alert("帖子还没有加载完成");
+    return;
+  }
+
+  var replyContent = input.value.trim();
+
+  if (!replyContent) {
+    alert("请输入回复内容");
+    return;
+  }
+
+  if (!currentAccount || !currentAccount.studentId) {
+    alert("请先登录");
+    return;
+  }
+
+  if (sendBtn) {
+    sendBtn.disabled = true;
+    sendBtn.textContent = "发送中";
+  }
+
+  mFetch(
+    "/api/threads/" +
+      encodeURIComponent(currentThreadData.id) +
+      "/comments",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        content: replyContent,
+        authorStudentId: currentAccount.studentId,
+        authorForumId: currentAccount.name || currentAccount.studentId
+      })
+    }
+  )
+    .then(function (res) {
+      if (!res.ok || !res.data || !res.data.success) {
+        alert((res.data && res.data.message) || "回复失败");
+        return null;
+      }
+
+      input.value = "";
+
+      return mFetch(
+        "/api/threads/" +
+          encodeURIComponent(currentThreadData.id)
+      );
+    })
+    .then(function (res) {
+      if (
+        res &&
+        res.ok &&
+        res.data &&
+        res.data.thread
+      ) {
+        currentThreadData = res.data.thread;
+
+        var comments = Array.isArray(currentThreadData.comments)
+          ? currentThreadData.comments
+          : [];
+
+        currentThreadData.comments = comments;
+        paintThread(currentThreadData, comments);
+      }
+    })
+    .catch(function () {
+      alert("请求失败");
+    })
+    .finally(function () {
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "发送";
+      }
+    });
+}
+
+/* ========== 绑定评论发送按钮 ========== */
+var mobileReplySendBtn = document.getElementById("mReplySendBtn");
+var mobileReplyInput = document.getElementById("mReplyInput");
+
+if (mobileReplySendBtn) {
+  mobileReplySendBtn.addEventListener("click", sendMobileReply);
+}
+
+if (mobileReplyInput) {
+  mobileReplyInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendMobileReply();
+    }
+  });
+}
