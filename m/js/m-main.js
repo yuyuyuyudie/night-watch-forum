@@ -217,12 +217,25 @@ function showThreadMenu() {
     { text: "举报本帖", svg: ICO.report, action: "report" }
   ];
 
-  // 发帖人可以编辑自己的帖子
+  // 发帖人：标题和正文一起编辑，只能编辑一次
   if (isAuthor) {
-    items.push({ text: "编辑帖子", svg: ICO.edit, action: "edit" });
+    items.push({
+      text: "编辑帖子",
+      svg: ICO.edit,
+      action: "edit"
+    });
   }
 
-    if (isAdminOrMod()) {
+  // 管理员：可以无限修改标题
+  if (isAdmin()) {
+    items.push({
+      text: "修改标题",
+      svg: ICO.edit,
+      action: "editTitle"
+    });
+  }
+
+  if (isAdminOrMod()) {
     items.push({
       text: currentThreadData.isPinned ? "取消置顶" : "置顶本帖",
       svg: ICO.pin,
@@ -295,6 +308,11 @@ function handleMenuAction(action) {
     return;
   }
 
+  if (action === "editTitle") {
+    editThreadTitleByAdmin();
+    return;
+  }
+
   if (action === "share") {
     if (navigator.share) {
       navigator.share({ title: document.title, url: window.location.href }).catch(function () {});
@@ -337,20 +355,45 @@ function handleMenuAction(action) {
   if (action === "pin") {
     // 已经置顶就取消，没置顶就置顶
     var nextPinned = !currentThreadData.isPinned;
+
     mFetch("/api/threads/" + encodeURIComponent(tid) + "/pin", {
       method: "POST",
       body: JSON.stringify({ pinned: nextPinned })
     }).then(function (res) {
-      if (res.ok && res.data && res.data.success) {
-        alert(res.data.message || (nextPinned ? "已置顶" : "已取消置顶"));
-        if (res.data.thread) {
-          currentThreadData = res.data.thread;
-          paintThread(currentThreadData, currentThreadData.comments || currentThreadData.replies || []);
-        }
-      } else {
+      if (!res.ok || !res.data || !res.data.success) {
         alert((res.data && res.data.message) || "置顶失败");
+        return;
       }
-    }).catch(function () { alert("请求失败"); });
+
+      alert(res.data.message || (nextPinned ? "已置顶" : "已取消置顶"));
+
+      /*
+       * 置顶接口会新建一条诺玛系统评论。
+       * 所以操作成功后，再重新读取一次帖子详情，
+       * 才能把这条评论显示出来。
+       */
+      return mFetch("/api/threads/" + encodeURIComponent(tid));
+    }).then(function (detailRes) {
+      if (!detailRes) return;
+
+      if (
+        detailRes.ok &&
+        detailRes.data &&
+        detailRes.data.thread
+      ) {
+        currentThreadData = detailRes.data.thread;
+
+        var comments = Array.isArray(currentThreadData.comments)
+          ? currentThreadData.comments
+          : [];
+
+        currentThreadData.comments = comments;
+        paintThread(currentThreadData, comments);
+      }
+    }).catch(function () {
+      alert("请求失败");
+    });
+
     return;
   }
 
@@ -487,6 +530,17 @@ function mobileLogout() {
 /* ==========================================================
    操作栏 — 真实数据 + 点击交互
    ========================================================== */
+
+function isThreadPinned(t) {
+  return Boolean(
+    t &&
+    (t.isPinned === true ||
+      t.isPinned === 1 ||
+      t.is_pinned === true ||
+      t.is_pinned === 1)
+  );
+}
+
 function buildActionBar(t) {
   var isLiked = false;
   var isDisliked = false;
@@ -598,6 +652,7 @@ function renderHome() {
         '<div class="m-board-list-inner" id="mBoardGrid"><div class="m-loading">加载中</div></div>' +
       '</div>' +
     '</div>' +
+    '<div id="mPinnedBanner" class="m-pinned-banner"></div>' +
     '<div class="m-section-title">热门</div>' +
     '<div id="mHotList"><div class="m-loading">加载中</div></div>';
 
@@ -606,6 +661,7 @@ function renderHome() {
   if (header) header.addEventListener("click", function () { drawer.classList.toggle("expanded"); });
 
   loadBoards();
+  loadHomePinned();
   loadHotThreads();
 }
 
@@ -640,6 +696,81 @@ function loadBoards() {
   }).catch(function () { grid.innerHTML = '<div class="m-empty">板块加载失败</div>'; });
 }
 
+function loadHomePinned() {
+  var box = document.getElementById("mPinnedBanner");
+  if (!box) return;
+
+  mFetch("/api/forum/home-pinned")
+    .then(function (res) {
+      var items =
+        res.data && Array.isArray(res.data.items)
+          ? res.data.items
+          : [];
+
+      if (
+        !res.ok ||
+        items.length === 0
+      ) {
+        box.innerHTML = "";
+        box.style.display = "none";
+        return;
+      }
+
+      box.style.display = "block";
+
+      var html =
+        '<div class="m-pinned-banner-head">' +
+          '<span class="m-pinned-banner-icon">📌</span>' +
+          '<span>置顶内容</span>' +
+        '</div>' +
+        '<div class="m-pinned-banner-list">';
+
+      items.forEach(function (item) {
+        var boardSlug =
+          item.boardSlug ||
+          (item.board && item.board.slug) ||
+          "";
+
+        html +=
+          '<button class="m-pinned-banner-item" ' +
+            'data-thread-id="' + escapeHtml(item.id) + '" ' +
+            'data-board-slug="' + escapeHtml(boardSlug) + '">' +
+            '<span class="m-pinned-mark">置顶</span>' +
+            '<span class="m-pinned-banner-title">' +
+              escapeHtml(item.title || "无标题") +
+            '</span>' +
+            '<span class="m-pinned-banner-board">' +
+              escapeHtml(
+                (item.board && item.board.name) ||
+                item.boardName ||
+                ""
+              ) +
+            '</span>' +
+          '</button>';
+      });
+
+      html += "</div>";
+      box.innerHTML = html;
+
+      box.querySelectorAll(
+        ".m-pinned-banner-item"
+      ).forEach(function (item) {
+        item.addEventListener("click", function () {
+          var threadId = item.dataset.threadId;
+          var slug = item.dataset.boardSlug;
+
+          if (threadId && slug) {
+            renderThreadPage(threadId, slug);
+          }
+        });
+      });
+    })
+    .catch(function () {
+      box.innerHTML = "";
+      box.style.display = "none";
+    });
+}
+
 function loadHotThreads() {
   var list = document.getElementById("mHotList");
   if (!list) return;
@@ -658,8 +789,19 @@ function loadHotThreads() {
         var authorName = t.authorName || t.author || t.forumId || "匿名";
         var authorSid = t.authorStudentId || t.studentId || "";
         var avatar = t.authorAvatar || defaultAvatar(authorSid || authorName);
-        html +=
-          '<div class="m-thread-item" data-id="' + id + '" data-slug="' + escapeHtml(slug) + '">' +
+        var pinnedClass = isThreadPinned(t)
+  ? " m-thread-item-pinned"
+  : "";
+
+var pinnedMark = isThreadPinned(t)
+  ? '<span class="m-pinned-mark">置顶</span>'
+  : "";
+
+html +=
+  '<div class="m-thread-item' + pinnedClass +
+    '" data-id="' + id +
+    '" data-slug="' + escapeHtml(slug) + '">' +
+
             '<div class="m-thread-top">' +
               '<div class="m-thread-author-row">' +
                 '<img class="m-thread-author-avatar" src="' + escapeHtml(avatar) + '">' +
@@ -667,7 +809,13 @@ function loadHotThreads() {
               '</div>' +
               '<div class="m-thread-board-tag">' + escapeHtml(boardName) + '</div>' +
             '</div>' +
-            '<div class="m-thread-title">' + escapeHtml(t.title || "无标题") + '</div>' +
+            '<div class="m-thread-title-row">' +
+  pinnedMark +
+  '<div class="m-thread-title">' +
+    escapeHtml(t.title || "无标题") +
+  '</div>' +
+'</div>' +
+
             buildActionBar(t) +
           '</div>';
       });
@@ -701,8 +849,19 @@ function renderBoardPage(slug, boardName) {
       var authorName = t.authorName || t.author || "匿名";
       var authorSid = t.authorStudentId || t.studentId || "";
       var avatar = t.authorAvatar || defaultAvatar(authorSid || authorName);
-      html +=
-        '<div class="m-thread-item" data-id="' + id + '" data-slug="' + escapeHtml(slug) + '">' +
+      var pinnedClass = isThreadPinned(t)
+  ? " m-thread-item-pinned"
+  : "";
+
+var pinnedMark = isThreadPinned(t)
+  ? '<span class="m-pinned-mark">置顶</span>'
+  : "";
+
+html +=
+  '<div class="m-thread-item' + pinnedClass +
+    '" data-id="' + id +
+    '" data-slug="' + escapeHtml(slug) + '">' +
+
           '<div class="m-thread-top">' +
             '<div class="m-thread-author-row">' +
               '<img class="m-thread-author-avatar" src="' + escapeHtml(avatar) + '">' +
@@ -731,67 +890,158 @@ function renderBoardPage(slug, boardName) {
 function renderThreadPage(threadId, slug) {
   backTarget = "home";
   headerTitle.textContent = "帖子详情";
-  showBackOnly(); showReplyBar(); showMenuButton();
+  showBackOnly();
+  showReplyBar();
+  showMenuButton();
   content.innerHTML = '<div class="m-loading">加载中</div>';
 
   mFetch("/api/threads/" + encodeURIComponent(threadId)).then(function (res) {
-    if (res.ok && res.data && (res.data.thread || res.data.data || res.data.title)) {
-      var t = res.data.thread || res.data.data || res.data;
+    if (res.ok && res.data && res.data.thread) {
+      var t = res.data.thread;
+
+      // 后端把回复和诺玛系统提醒都放在 comments 里
+      var comments = Array.isArray(t.comments)
+        ? t.comments
+        : (Array.isArray(res.data.replies) ? res.data.replies : []);
+
+      t.comments = comments;
       currentThreadData = t;
-      paintThread(t, res.data.replies || t.replies || []);
+      paintThread(t, comments);
       return;
     }
-    return mFetch("/api/boards/" + encodeURIComponent(slug) + "/threads").then(function (r2) {
-      var threads = (r2.data && (r2.data.threads || r2.data.data)) || [];
-      var found = (threads || []).find(function (x) { return String(x.id || x.threadId || x.thread_id) === String(threadId); });
-      if (!found) { content.innerHTML = '<div class="m-empty">帖子不存在或接口未就绪</div>'; return; }
-      currentThreadData = found;
-      paintThread(found, found.replies || []);
-    });
-  }).catch(function () { content.innerHTML = '<div class="m-empty">帖子加载失败</div>'; });
+
+    return mFetch("/api/boards/" + encodeURIComponent(slug) + "/threads")
+      .then(function (r2) {
+        var threads = (r2.data && (r2.data.threads || r2.data.data)) || [];
+
+        var found = (threads || []).find(function (x) {
+          return String(x.id || x.threadId || x.thread_id) === String(threadId);
+        });
+
+        if (!found) {
+          content.innerHTML = '<div class="m-empty">帖子不存在或接口未就绪</div>';
+          return;
+        }
+
+        var comments = Array.isArray(found.comments)
+          ? found.comments
+          : (Array.isArray(found.replies) ? found.replies : []);
+
+        found.comments = comments;
+        currentThreadData = found;
+        paintThread(found, comments);
+      });
+  }).catch(function () {
+    content.innerHTML = '<div class="m-empty">帖子加载失败</div>';
+  });
 }
 
-function paintThread(t, replies) {
-  replies = replies || [];
+function paintThread(t, comments) {
+  comments = Array.isArray(comments) ? comments : [];
+
   var authorName = t.author || t.authorForumId || t.authorName || "匿名";
   var authorSid = t.authorStudentId || t.studentId || "";
   var authorAvatar = t.authorAvatar || defaultAvatar(authorSid || authorName);
 
+  var detailPinnedClass = isThreadPinned(t)
+    ? " m-thread-detail-pinned"
+    : "";
+
+  var detailPinnedMark = isThreadPinned(t)
+    ? '<span class="m-pinned-mark">置顶</span>'
+    : "";
+
   content.innerHTML =
-    '<div class="m-thread-detail">' +
-      '<div class="m-thread-detail-title">' + escapeHtml(t.title || "无标题") + '</div>' +
+    '<div class="m-thread-detail' + detailPinnedClass + '">' +
+      '<div class="m-thread-detail-title-row">' +
+  detailPinnedMark +
+  '<div class="m-thread-detail-title">' +
+    escapeHtml(t.title || "无标题") +
+  '</div>' +
+'</div>' +
+
       '<div class="m-thread-detail-author">' +
-        '<img class="m-thread-detail-avatar" src="' + escapeHtml(authorAvatar) + '">' +
+        '<img class="m-thread-detail-avatar" src="' +
+          escapeHtml(authorAvatar) +
+        '">' +
         '<div class="m-thread-detail-author-info">' +
-          '<div class="m-thread-detail-author-name">' + escapeHtml(authorName) + '</div>' +
-          '<div class="m-thread-detail-meta"><span>' + formatTime(t.createdAt || t.created_at || t.time) + '</span></div>' +
+          '<div class="m-thread-detail-author-name">' +
+            escapeHtml(authorName) +
+          '</div>' +
+          '<div class="m-thread-detail-meta">' +
+            '<span>' +
+              formatTime(t.createdAt || t.created_at || t.time) +
+            '</span>' +
+          '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="m-thread-detail-content">' + escapeHtml(t.content || t.body || "（无正文）").replace(/\n/g, "<br>") + '</div>' +
+
+      '<div class="m-thread-detail-content">' +
+        escapeHtml(t.content || t.body || "（无正文）").replace(/\n/g, "<br>") +
+      '</div>' +
+
       buildActionBar(t) +
     '</div>' +
-    '<div class="m-section-title">回复 (' + replies.length + ')</div>' +
+
+    '<div class="m-section-title">回复 (' + comments.length + ')</div>' +
+
     '<div id="mReplyList">' +
-      (replies.length ? replies.map(function (r) {
-        var rName = r.author || r.authorForumId || r.authorName || "匿名";
-        var rSid = r.authorStudentId || r.studentId || "";
-        var rAvatar = r.authorAvatar || defaultAvatar(rSid || rName);
-        return '<div class="m-reply-item">' +
-          '<div class="m-reply-header">' +
-            '<div class="m-reply-author-row">' +
-              '<img class="m-reply-avatar" src="' + escapeHtml(rAvatar) + '">' +
-              '<span class="m-reply-author">' + escapeHtml(rName) + '</span>' +
-            '</div>' +
-            '<span class="m-reply-time">' + formatTime(r.createdAt || r.time) + '</span>' +
-          '</div>' +
-          '<div class="m-reply-content">' + escapeHtml(r.content || "").replace(/\n/g, "<br>") + '</div>' +
-        '</div>';
-      }).join("") : '<div class="m-empty">暂无回复</div>') +
+      (
+        comments.length
+          ? comments.map(function (r) {
+              var isSystem = Boolean(r.isSystem || r.system_flag);
+
+              var rName = isSystem
+                ? (r.author || r.authorForumId || "诺玛")
+                : (r.author || r.authorForumId || r.authorName || "匿名");
+
+              var rSid = r.authorStudentId || r.studentId || "";
+              var rAvatar = r.avatar || r.authorAvatar ||
+                defaultAvatar(isSystem ? "norma-system" : (rSid || rName));
+
+              // 后端评论正文叫 text，兼容旧的 content
+              var rText = r.text != null ? r.text : (r.content || "");
+
+              var systemBadge = isSystem
+                ? '<span class="m-system-badge">' +
+                    escapeHtml(r.systemLabel || r.system_label || "系统提示") +
+                  '</span>'
+                : "";
+
+              return '<div class="m-reply-item' +
+                (isSystem ? ' m-reply-system' : '') +
+                '">' +
+
+                '<div class="m-reply-header">' +
+                  '<div class="m-reply-author-row">' +
+                    '<img class="m-reply-avatar" src="' +
+                      escapeHtml(rAvatar) +
+                    '">' +
+                    '<span class="m-reply-author">' +
+                      escapeHtml(rName) +
+                    '</span>' +
+                    systemBadge +
+                  '</div>' +
+
+                  '<span class="m-reply-time">' +
+                    formatTime(r.createdAt || r.created_at || r.time) +
+                  '</span>' +
+                '</div>' +
+
+                '<div class="m-reply-content">' +
+                  escapeHtml(rText).replace(/\n/g, "<br>") +
+                '</div>' +
+
+              '</div>';
+            }).join("")
+          : '<div class="m-empty">暂无回复</div>'
+      ) +
     '</div>';
 
-  // 绑定操作栏
   var detail = content.querySelector(".m-thread-detail");
-  if (detail) bindActionBar(detail, t.id);
+  if (detail) {
+    bindActionBar(detail, t.id);
+  }
 }
 
 /* ========== 档案 / 发帖 / 消息 ========== */
@@ -886,6 +1136,7 @@ function renderProfilePage() {
       '<button class="m-profile-tab" data-ptab="favs">收藏</button>' +
     '</div>' +
     '<div id="mProfileList"><div class="m-empty">暂无数据</div></div>';
+}
 
     /* ========== 编辑帖子弹窗 ========== */
 function showEditThreadModal() {
@@ -943,6 +1194,74 @@ function showEditThreadModal() {
   });
 }
 
+function editThreadTitleByAdmin() {
+  if (!currentThreadData || !currentThreadData.id) return;
+
+  var newTitle = prompt(
+    "修改标题",
+    currentThreadData.title || ""
+  );
+
+  if (newTitle === null) return;
+
+  newTitle = newTitle.trim();
+
+  if (!newTitle) {
+    alert("标题不能为空");
+    return;
+  }
+
+  mFetch(
+    "/api/threads/" +
+      encodeURIComponent(currentThreadData.id) +
+      "/title",
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        title: newTitle
+      })
+    }
+  )
+    .then(function (res) {
+      if (!res.ok || !res.data || !res.data.success) {
+        alert(
+          (res.data && res.data.message) ||
+          "标题修改失败"
+        );
+        return null;
+      }
+
+      return mFetch(
+        "/api/threads/" +
+          encodeURIComponent(currentThreadData.id)
+      );
+    })
+    .then(function (detailRes) {
+      if (!detailRes) return;
+
+      if (
+        detailRes.ok &&
+        detailRes.data &&
+        detailRes.data.thread
+      ) {
+        currentThreadData = detailRes.data.thread;
+
+        var comments = Array.isArray(
+          currentThreadData.comments
+        )
+          ? currentThreadData.comments
+          : [];
+
+        currentThreadData.comments = comments;
+        paintThread(currentThreadData, comments);
+        alert("标题修改成功");
+      }
+    })
+    .catch(function () {
+      alert("请求失败");
+    });
+}
+
 function closeEditModal() {
   var sheet = document.getElementById("mEditSheet");
   var overlay = document.getElementById("mEditOverlay");
@@ -951,34 +1270,62 @@ function closeEditModal() {
 }
 
 function saveThreadEdit(newTitle, newContent) {
-  if (!currentThreadData) return;
+  if (!currentThreadData || !currentThreadData.id) {
+    alert("帖子信息还没加载好");
+    return;
+  }
 
-  // 先发标题
-  mFetch("/api/threads/" + encodeURIComponent(currentThreadData.id) + "/title", {
-    method: "PUT",
-    body: JSON.stringify({ title: newTitle })
-  }).then(function (res1) {
-    if (!res1.ok) {
-      alert((res1.data && res1.data.message) || "标题修改失败");
-      return;
-    }
-    // 再发正文
-    mFetch("/api/threads/" + encodeURIComponent(currentThreadData.id) + "/content", {
+  mFetch(
+    "/api/threads/" +
+      encodeURIComponent(currentThreadData.id) +
+      "/edit",
+    {
       method: "PUT",
-      body: JSON.stringify({ content: newContent })
-    }).then(function (res2) {
-      if (res2.ok && res2.data && res2.data.thread) {
-        alert("修改成功");
-        closeEditModal();
-        currentThreadData = res2.data.thread;
-        // 重新渲染帖子详情
-        paintThread(currentThreadData, res2.data.replies || currentThreadData.replies || []);
-      } else {
-        alert((res2.data && res2.data.message) || "正文修改失败");
+      body: JSON.stringify({
+        title: newTitle,
+        content: newContent
+      })
+    }
+  )
+    .then(function (res) {
+      if (!res.ok || !res.data || !res.data.success) {
+        alert(
+          (res.data && res.data.message) ||
+          "编辑失败"
+        );
+        return null;
       }
-    }).catch(function () { alert("请求失败"); });
-  }).catch(function () { alert("请求失败"); });
-}
 
+      return mFetch(
+        "/api/threads/" +
+          encodeURIComponent(currentThreadData.id)
+      );
+    })
+    .then(function (detailRes) {
+      if (!detailRes) return;
+
+      if (
+        detailRes.ok &&
+        detailRes.data &&
+        detailRes.data.thread
+      ) {
+        currentThreadData = detailRes.data.thread;
+
+        var comments = Array.isArray(
+          currentThreadData.comments
+        )
+          ? currentThreadData.comments
+          : [];
+
+        currentThreadData.comments = comments;
+
+        closeEditModal();
+        paintThread(currentThreadData, comments);
+        alert("编辑成功");
+      }
+    })
+    .catch(function () {
+      alert("请求失败");
+    });
 }
 
