@@ -843,3 +843,249 @@
   color: var(--muted);
   font-style: italic;
 }
+
+/* ========== 手机版好友和聊天 ========== */
+.m-friend-item,
+.m-chat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line-dark);
+  border-radius: 14px;
+  background: var(--panel-2);
+}
+
+.m-friend-item:active,
+.m-chat-item:active {
+  opacity: 0.88;
+  transform: scale(0.99);
+}
+
+.m-friend-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--input-bg);
+}
+
+.m-friend-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.m-friend-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.m-friend-desc {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m-chat-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 140px);
+}
+
+.m-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+
+.m-chat-bubble-row {
+  display: flex;
+}
+
+.m-chat-bubble-row.me {
+  justify-content: flex-end;
+}
+
+.m-chat-bubble-row.other {
+  justify-content: flex-start;
+}
+
+.m-chat-bubble {
+  max-width: 78%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.m-chat-bubble-row.me .m-chat-bubble {
+  background: #2f6fed;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.m-chat-bubble-row.other .m-chat-bubble {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line-dark);
+  border-bottom-left-radius: 4px;
+}
+
+/* 底部聊天输入栏 */
+.m-bottom-chat {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 64px;
+  padding: 9px 12px;
+  padding-bottom: calc(9px + env(safe-area-inset-bottom));
+  background: var(--panel);
+  border-top: 1px solid var(--line-dark);
+  flex-shrink: 0;
+}
+
+.m-bottom-chat input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--line-dark);
+  border-radius: 20px;
+  background: var(--input-bg);
+  color: var(--text);
+  padding: 0 14px;
+  font-size: 14px;
+  outline: none;
+}
+
+.m-bottom-chat button {
+  min-width: 64px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--text);
+  color: var(--panel-2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.m-bottom-chat button:disabled {
+  opacity: 0.55;
+}
+
+/* 手机位置管理 */
+.m-location-manage-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+}
+
+.m-location-manage-panel {
+  width: 100%;
+  max-width: 560px;
+  max-height: 80vh;
+  overflow: auto;
+  background: var(--panel-2);
+  border-radius: 16px 16px 0 0;
+  padding: 14px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+}
+
+.m-location-manage-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.m-location-manage-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.m-location-manage-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.m-location-manage-add,
+.m-location-manage-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.m-location-manage-add input,
+.m-location-manage-search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--line-dark);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text);
+  padding: 0 12px;
+}
+
+.m-location-manage-add button,
+.m-location-manage-search button,
+.m-location-manage-header button {
+  border: 0;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--panel-2);
+  padding: 0 12px;
+  min-height: 40px;
+}
+
+.m-location-manage-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.m-location-manage-item-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.m-location-manage-item-meta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.m-location-manage-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.m-location-manage-item-actions button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.m-location-manage-item-actions button.danger {
+  color: #e44;
+}
