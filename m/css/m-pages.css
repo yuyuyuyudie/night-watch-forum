@@ -845,7 +845,53 @@
 }
 
 /* ========== 手机版好友和聊天 ========== */
-.m-friend-item,
+
+/* 上面：横向好友头像条 */
+.m-friend-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.m-friend-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.m-friend-avatar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 64px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.m-friend-avatar-only {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--input-bg);
+  border: 1px solid var(--line-dark);
+}
+
+.m-friend-id-only {
+  width: 100%;
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 11px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 下面：最近聊天，左对齐 */
 .m-chat-item {
   display: flex;
   align-items: center;
@@ -855,43 +901,50 @@
   border: 1px solid var(--line-dark);
   border-radius: 14px;
   background: var(--panel-2);
+  text-align: left;
 }
 
-.m-friend-item:active,
 .m-chat-item:active {
   opacity: 0.88;
   transform: scale(0.99);
 }
 
-.m-friend-avatar {
-  width: 44px;
-  height: 44px;
+.m-chat-list-avatar {
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
   background: var(--input-bg);
 }
 
-.m-friend-info {
+.m-chat-list-info {
   min-width: 0;
   flex: 1;
+  text-align: left;
 }
 
-.m-friend-name {
+.m-chat-list-name {
   font-size: 15px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 3px;
-}
-
-.m-friend-desc {
-  font-size: 12px;
-  color: var(--muted);
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.m-chat-list-preview {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 聊天页 */
 .m-chat-page {
   display: flex;
   flex-direction: column;
@@ -901,12 +954,14 @@
 .m-chat-messages {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding-bottom: 20px;
 }
 
 .m-chat-bubble-row {
   display: flex;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .m-chat-bubble-row.me {
@@ -917,8 +972,30 @@
   justify-content: flex-start;
 }
 
+.m-chat-msg-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--input-bg);
+}
+
+.m-chat-bubble-wrap {
+  max-width: 72%;
+  display: flex;
+  flex-direction: column;
+}
+
+.m-chat-bubble-row.me .m-chat-bubble-wrap {
+  align-items: flex-end;
+}
+
+.m-chat-bubble-row.other .m-chat-bubble-wrap {
+  align-items: flex-start;
+}
+
 .m-chat-bubble {
-  max-width: 78%;
   padding: 10px 12px;
   border-radius: 14px;
   font-size: 14px;
@@ -938,6 +1015,12 @@
   color: var(--text);
   border: 1px solid var(--line-dark);
   border-bottom-left-radius: 4px;
+}
+
+.m-chat-time {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
 }
 
 /* 底部聊天输入栏 */
@@ -1088,4 +1171,161 @@
 
 .m-location-manage-item-actions button.danger {
   color: #e44;
+}
+
+/* ========== 个人主页 ========== */
+.m-profile-page-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line-dark);
+  border-radius: 16px;
+  padding: 18px 16px 14px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.m-profile-page-avatar {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--input-bg);
+  display: block;
+}
+
+.m-profile-avatar-tip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4px 0;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  font-size: 10px;
+}
+
+.m-profile-page-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.m-profile-page-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.m-profile-page-wearing {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(47, 111, 237, 0.14);
+  color: #4b8fe8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.m-profile-page-student {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.m-profile-page-bio {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* 拥有身份组：居中，并且和下面分界线留空 */
+.m-profile-owned-wrap {
+  padding: 0 6px 16px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.m-profile-owned-title {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.m-profile-owned-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.m-profile-owned-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.m-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.m-profile-stat-num {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.m-profile-stat-label {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.m-profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.m-profile-tab {
+  border: 1px solid var(--line-dark);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--muted);
+  min-height: 38px;
+  font-size: 13px;
+}
+
+.m-profile-tab.active {
+  color: var(--text);
+  font-weight: 700;
+  border-color: var(--text);
+}
+
+.m-sheet-title {
+  padding: 10px 16px 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.m-sheet-item.active-wear {
+  color: #4b8fe8;
+  font-weight: 700;
 }

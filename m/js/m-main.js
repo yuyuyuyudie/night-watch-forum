@@ -18,6 +18,8 @@ var mPrivateChats = [];
 var mFriendsCache = [];
 var currentChatContact = null;
 var currentChatId = null;
+var mFriendsLoading = false;
+var mFriendsLoadedOnce = false;
 
 var tabs = document.querySelectorAll(".m-tab");
 var content = document.getElementById("mContent");
@@ -136,15 +138,34 @@ function escapeHtml(s) {
 
 function accountFromUser(u) {
   if (!u) return null;
+
   var sid = String(u.studentId || u.student_id || "").toUpperCase();
   var profile = u.profile || {};
+
+  var wearing =
+    profile.displayGroup ||
+    profile.wearingGroup ||
+    u.displayGroup ||
+    u.wearingGroup ||
+    "";
+
+  var localAvatar = "";
+  try {
+    localAvatar = localStorage.getItem("cassell_local_avatar_" + sid) || "";
+  } catch (e) {}
+
   return {
     studentId: sid,
     name: profile.forumId || u.forumId || u.name || sid,
-    avatar: u.avatar || defaultAvatar(sid),
+    avatar: localAvatar || u.avatar || defaultAvatar(sid),
     signature: profile.signature || u.signature || "",
     identityGroups: profile.identityGroups || u.identityGroups || [],
-    wearingGroup: profile.wearingGroup || u.wearingGroup || null
+    wearingGroup: wearing || null,
+    displayGroup: wearing || "",
+    displayGroupOptions:
+      profile.displayGroupOptions ||
+      u.displayGroupOptions ||
+      []
   };
 }
 
@@ -2506,13 +2527,26 @@ function renderMessage() {
     return;
   }
 
+  // 不要一直写“加载中”，避免闪烁
   content.innerHTML =
     '<div class="m-section-title">好友</div>' +
-    '<div id="mFriendList" class="m-loading">加载中</div>' +
+    '<div id="mFriendList" class="m-friend-strip"></div>' +
     '<div class="m-section-title">最近聊天</div>' +
-    '<div id="mChatList" class="m-loading">加载中</div>';
+    '<div id="mChatList"></div>';
 
-  loadMobileFriendsAndChats();
+  // 有缓存就先直接显示
+  if (mFriendsCache && mFriendsCache.length) {
+    paintMobileFriendList(mFriendsCache);
+  } else {
+    mFriendsCache = [M_NORMA_CONTACT];
+    paintMobileFriendList(mFriendsCache);
+  }
+
+  loadMobilePrivateChats();
+  paintMobileChatList();
+
+  // 后台静默更新好友，不反复刷整页
+  loadMobileFriendsAndChats(true);
 }
 
 /* ========== 设置页 ========== */
@@ -2549,12 +2583,33 @@ function renderSetting() {
 function renderProfilePage() {
   backTarget = "setting";
   headerTitle.textContent = "个人主页";
-  showBackOnly(); hideBottomBar(); showThemeButton();
+  showBackOnly();
+  hideBottomBar();
+  showThemeButton();
 
-  var me = currentAccount || { name: "未登录", studentId: "", avatar: defaultAvatar("guest"), signature: "", identityGroups: [], wearingGroup: null };
+  if (!currentAccount || localAuthState.isGuest) {
+    content.innerHTML = '<div class="m-empty">请先登录正式账号</div>';
+    return;
+  }
 
-  var wearing = me.wearingGroup;
-  if (wearing && typeof wearing === "object") wearing = wearing.text || wearing.name || "";
+  paintProfilePage(currentAccount);
+
+  // 再静默刷新一次最新资料
+  fetchMe().then(function () {
+    if (headerTitle && headerTitle.textContent === "个人主页") {
+      paintProfilePage(currentAccount);
+    }
+  });
+}
+
+function paintProfilePage(me) {
+  if (!me) return;
+
+  var wearing = me.wearingGroup || me.displayGroup || "";
+  if (wearing && typeof wearing === "object") {
+    wearing = wearing.text || wearing.name || "";
+  }
+
   if (!wearing && me.identityGroups && me.identityGroups[0]) {
     var g0 = me.identityGroups[0];
     wearing = typeof g0 === "object" ? (g0.text || g0.name || "") : g0;
@@ -2562,38 +2617,361 @@ function renderProfilePage() {
 
   var groups = me.identityGroups || [];
   var ownedHtml = "";
+
   if (groups.length) {
-    ownedHtml = '<div class="m-profile-owned-list">' + groups.map(function (g) {
-      var text = typeof g === "object" ? (g.text || g.name || "") : g;
-      var color = (typeof g === "object" && g.color) ? g.color : "#262626";
-      return '<span class="m-profile-owned-tag" style="background:' + color + ';">' + escapeHtml(text) + '</span>';
-    }).join("") + '</div>';
+    ownedHtml =
+      '<div class="m-profile-owned-wrap">' +
+        '<div class="m-profile-owned-title">拥有的身份组</div>' +
+        '<div class="m-profile-owned-list">' +
+          groups.map(function (g) {
+            var text = typeof g === "object" ? (g.text || g.name || "") : g;
+            var color = (typeof g === "object" && g.color) ? g.color : "#262626";
+            return (
+              '<span class="m-profile-owned-tag" style="background:' + color + ';">' +
+                escapeHtml(text) +
+              '</span>'
+            );
+          }).join("") +
+        '</div>' +
+      '</div>';
   } else {
-    ownedHtml = '<div class="m-empty" style="padding:12px 0;">暂无身份组</div>';
+    ownedHtml =
+      '<div class="m-profile-owned-wrap">' +
+        '<div class="m-profile-owned-title">拥有的身份组</div>' +
+        '<div class="m-empty" style="padding:8px 0 0;">暂无身份组</div>' +
+      '</div>';
   }
 
   content.innerHTML =
     '<div class="m-profile-page-card">' +
-      '<div class="m-profile-page-avatar"><img src="' + escapeHtml(me.avatar || defaultAvatar(me.studentId)) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>' +
+      '<button type="button" class="m-profile-page-avatar" id="mProfileAvatarBtn">' +
+        '<img src="' + escapeHtml(me.avatar || defaultAvatar(me.studentId)) + '" ' +
+          'style="width:100%;height:100%;border-radius:50%;object-fit:cover;">' +
+        '<div class="m-profile-avatar-tip">点击更换</div>' +
+      '</button>' +
+
       '<div class="m-profile-page-name-row">' +
-        '<span class="m-profile-page-name">' + escapeHtml(me.name || me.studentId) + '</span>' +
-        (wearing ? '<span class="m-profile-page-wearing">' + escapeHtml(wearing) + '</span>' : '') +
+        '<span class="m-profile-page-name">' +
+          escapeHtml(me.name || me.studentId) +
+        '</span>' +
+        '<button type="button" class="m-profile-page-wearing" id="mProfileWearBtn">' +
+          escapeHtml(wearing || "选择佩戴") +
+        '</button>' +
       '</div>' +
-      '<div class="m-profile-page-student">学号: ' + escapeHtml(me.studentId || "-") + '</div>' +
-      '<div class="m-profile-page-bio">' + escapeHtml(me.signature || "这个人很懒，什么都没写。") + '</div>' +
+
+      '<div class="m-profile-page-student">学号: ' +
+        escapeHtml(me.studentId || "-") +
+      '</div>' +
+
+      '<div class="m-profile-page-bio">' +
+        escapeHtml(me.signature || "这个人很懒，什么都没写。") +
+      '</div>' +
+
       ownedHtml +
+
       '<div class="m-profile-stats">' +
         '<div class="m-profile-stat"><div class="m-profile-stat-num">-</div><div class="m-profile-stat-label">发帖</div></div>' +
         '<div class="m-profile-stat"><div class="m-profile-stat-num">-</div><div class="m-profile-stat-label">回复</div></div>' +
         '<div class="m-profile-stat"><div class="m-profile-stat-num">-</div><div class="m-profile-stat-label">收藏</div></div>' +
       '</div>' +
     '</div>' +
+
     '<div class="m-profile-tabs">' +
       '<button class="m-profile-tab active" data-ptab="posts">发帖</button>' +
       '<button class="m-profile-tab" data-ptab="replies">回复</button>' +
       '<button class="m-profile-tab" data-ptab="favs">收藏</button>' +
     '</div>' +
     '<div id="mProfileList"><div class="m-empty">暂无数据</div></div>';
+
+  var avatarBtn = document.getElementById("mProfileAvatarBtn");
+  if (avatarBtn) {
+    avatarBtn.addEventListener("click", function () {
+      showAvatarChangeSheet();
+    });
+  }
+
+  var wearBtn = document.getElementById("mProfileWearBtn");
+  if (wearBtn) {
+    wearBtn.addEventListener("click", function () {
+      showWearGroupSheet();
+    });
+  }
+}
+
+/* ========== 换头像 ========== */
+function showAvatarChangeSheet() {
+  var old = document.getElementById("mAvatarSheetOverlay");
+  if (old) old.remove();
+
+  var overlay = document.createElement("div");
+  overlay.id = "mAvatarSheetOverlay";
+  overlay.className = "m-sheet-overlay";
+
+  overlay.innerHTML =
+    '<div class="m-comment-sheet">' +
+      '<button class="m-sheet-item" data-act="link">链接上传头像</button>' +
+      '<button class="m-sheet-item" data-act="local">本地上传头像</button>' +
+      '<button class="m-sheet-item" data-act="frame">更换头像框（占位）</button>' +
+      '<button class="m-sheet-item cancel" data-act="close">取消</button>' +
+      '<input id="mAvatarFileInput" type="file" accept="image/*" style="display:none;">' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  var fileInput = document.getElementById("mAvatarFileInput");
+
+  overlay.querySelectorAll(".m-sheet-item").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var act = btn.getAttribute("data-act");
+
+      if (act === "close") {
+        overlay.remove();
+        return;
+      }
+
+      if (act === "frame") {
+        alert("头像框功能稍后完善，这里先占位。");
+        return;
+      }
+
+      if (act === "link") {
+        overlay.remove();
+        changeAvatarByLink();
+        return;
+      }
+
+      if (act === "local") {
+        if (fileInput) fileInput.click();
+      }
+    });
+  });
+
+  if (fileInput) {
+    fileInput.addEventListener("change", function () {
+      var file = fileInput.files && fileInput.files[0];
+      overlay.remove();
+      if (!file) return;
+      changeAvatarByLocalFile(file);
+    });
+  }
+
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) overlay.remove();
+  });
+}
+
+function changeAvatarByLink() {
+  var url = prompt("请输入头像图片链接：", currentAccount.avatar || "");
+  if (url === null) return;
+
+  url = String(url || "").trim();
+  if (!url) {
+    alert("链接不能为空");
+    return;
+  }
+
+  saveAvatarToServer(url);
+}
+
+function changeAvatarByLocalFile(file) {
+  if (!file) return;
+
+  if (!/^image\//.test(file.type || "")) {
+    alert("请选择图片文件");
+    return;
+  }
+
+  // 本地太大就提示
+  if (file.size > 2 * 1024 * 1024) {
+    alert("图片太大了，请选择 2MB 以内的图片，或改用图片链接。");
+    return;
+  }
+
+  var reader = new FileReader();
+
+  reader.onload = function () {
+    var dataUrl = String(reader.result || "");
+
+    if (!dataUrl) {
+      alert("读取图片失败");
+      return;
+    }
+
+    // 后端目前不接收 base64，所以本地先保存到本机，并立即显示
+    try {
+      localStorage.setItem(
+        "cassell_local_avatar_" + String(currentAccount.studentId || "").toUpperCase(),
+        dataUrl
+      );
+    } catch (e) {
+      alert("本地保存失败，可能是图片太大。请改用链接上传。");
+      return;
+    }
+
+    currentAccount.avatar = dataUrl;
+    paintProfilePage(currentAccount);
+    alert("本地头像已更换。注意：本地上传目前只保存在这台设备。若要全端同步，请用链接上传。");
+  };
+
+  reader.onerror = function () {
+    alert("读取图片失败");
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function saveAvatarToServer(avatarUrl) {
+  mFetch("/api/account-preferences", {
+    method: "POST",
+    body: JSON.stringify({
+      avatar: avatarUrl,
+      userStatus: "online"
+    })
+  })
+    .then(function (res) {
+      if (!res.ok || !res.data || !res.data.success) {
+        alert((res.data && res.data.message) || "头像保存失败");
+        return;
+      }
+
+      // 清掉本地覆盖，改用服务器头像
+      try {
+        localStorage.removeItem(
+          "cassell_local_avatar_" + String(currentAccount.studentId || "").toUpperCase()
+        );
+      } catch (e) {}
+
+      if (res.data.user) {
+        currentAccount = accountFromUser(res.data.user);
+      } else {
+        currentAccount.avatar = avatarUrl;
+      }
+
+      paintProfilePage(currentAccount);
+      alert("头像已更新");
+    })
+    .catch(function () {
+      alert("请求失败");
+    });
+}
+
+/* ========== 佩戴身份组 ========== */
+function showWearGroupSheet() {
+  if (!currentAccount) return;
+
+  var groups = currentAccount.identityGroups || [];
+  var options = currentAccount.displayGroupOptions || [];
+
+  // 可佩戴列表：先用身份组，再补上展示选项
+  var wearList = [];
+
+  groups.forEach(function (g) {
+    var text = typeof g === "object" ? (g.text || g.name || "") : String(g || "");
+    text = String(text || "").trim();
+    if (text && wearList.indexOf(text) === -1) {
+      wearList.push(text);
+    }
+  });
+
+  options.forEach(function (opt) {
+    var text =
+      (opt && (opt.value || opt.label || opt.name || opt.text)) || "";
+    text = String(text || "").trim();
+    if (text && wearList.indexOf(text) === -1) {
+      wearList.push(text);
+    }
+  });
+
+  if (!wearList.length) {
+    alert("当前没有可佩戴的身份组");
+    return;
+  }
+
+  var old = document.getElementById("mWearSheetOverlay");
+  if (old) old.remove();
+
+  var currentWear =
+    currentAccount.wearingGroup ||
+    currentAccount.displayGroup ||
+    "";
+
+  if (currentWear && typeof currentWear === "object") {
+    currentWear = currentWear.text || currentWear.name || "";
+  }
+
+  var overlay = document.createElement("div");
+  overlay.id = "mWearSheetOverlay";
+  overlay.className = "m-sheet-overlay";
+
+  var itemsHtml = wearList.map(function (name) {
+    var active = String(name) === String(currentWear);
+    return (
+      '<button class="m-sheet-item' + (active ? ' active-wear' : '') + '" data-wear="' +
+        escapeHtml(name) +
+      '">' +
+        escapeHtml(name) +
+        (active ? '（当前）' : '') +
+      '</button>'
+    );
+  }).join("");
+
+  overlay.innerHTML =
+    '<div class="m-comment-sheet">' +
+      '<div class="m-sheet-title">选择佩戴的身份组</div>' +
+      itemsHtml +
+      '<button class="m-sheet-item cancel" data-wear="">取消</button>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelectorAll(".m-sheet-item").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var wear = btn.getAttribute("data-wear");
+      overlay.remove();
+
+      if (!wear) return;
+      saveWearingGroup(wear);
+    });
+  });
+
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) overlay.remove();
+  });
+}
+
+function saveWearingGroup(displayGroup) {
+  if (!currentAccount) return;
+
+  mFetch("/api/profile", {
+    method: "POST",
+    body: JSON.stringify({
+      forumId: currentAccount.name || currentAccount.studentId,
+      gender: "未设定",
+      signature: currentAccount.signature || "这个人很懒，什么都没写。",
+      identityType: "student",
+      identityGroups: currentAccount.identityGroups || [],
+      displayGroup: displayGroup
+    })
+  })
+    .then(function (res) {
+      if (!res.ok || !res.data || !res.data.success) {
+        alert((res.data && res.data.message) || "佩戴失败");
+        return;
+      }
+
+      if (res.data.user) {
+        currentAccount = accountFromUser(res.data.user);
+      } else {
+        currentAccount.wearingGroup = displayGroup;
+        currentAccount.displayGroup = displayGroup;
+      }
+
+      paintProfilePage(currentAccount);
+      alert("已佩戴：" + displayGroup);
+    })
+    .catch(function () {
+      alert("请求失败");
+    });
 }
 
     /* ========== 编辑帖子弹窗 ========== */
@@ -3030,18 +3408,25 @@ function getLastMessagePreview(chat) {
   return text;
 }
 
-function loadMobileFriendsAndChats() {
+function loadMobileFriendsAndChats(silent) {
   loadMobilePrivateChats();
 
-  var friendBox = document.getElementById("mFriendList");
-  var chatBox = document.getElementById("mChatList");
+  // 防止重复请求导致页面一直闪
+  if (mFriendsLoading) {
+    paintMobileChatList();
+    return;
+  }
 
-  if (!friendBox || !chatBox) return;
+  mFriendsLoading = true;
 
-  // 先放诺玛，保证马上能点
-  mFriendsCache = [M_NORMA_CONTACT];
-  paintMobileFriendList(mFriendsCache);
-  paintMobileChatList();
+  // 静默更新时不要先清空页面
+  if (!silent) {
+    if (!mFriendsCache.length) {
+      mFriendsCache = [M_NORMA_CONTACT];
+    }
+    paintMobileFriendList(mFriendsCache);
+    paintMobileChatList();
+  }
 
   mFetch("/api/social/friends")
     .then(function (res) {
@@ -3067,13 +3452,26 @@ function loadMobileFriendsAndChats() {
         });
 
       mFriendsCache = [M_NORMA_CONTACT].concat(realFriends);
-      paintMobileFriendList(mFriendsCache);
-      paintMobileChatList();
+      mFriendsLoadedOnce = true;
+
+      // 只有还在消息页时才重绘
+      if (currentTab === "message" && !currentChatContact) {
+        paintMobileFriendList(mFriendsCache);
+        paintMobileChatList();
+      }
     })
     .catch(function () {
-      mFriendsCache = [M_NORMA_CONTACT];
-      paintMobileFriendList(mFriendsCache);
-      paintMobileChatList();
+      if (!mFriendsCache.length) {
+        mFriendsCache = [M_NORMA_CONTACT];
+      }
+
+      if (currentTab === "message" && !currentChatContact) {
+        paintMobileFriendList(mFriendsCache);
+        paintMobileChatList();
+      }
+    })
+    .finally(function () {
+      mFriendsLoading = false;
     });
 }
 
@@ -3081,32 +3479,29 @@ function paintMobileFriendList(friends) {
   var box = document.getElementById("mFriendList");
   if (!box) return;
 
-  if (!friends.length) {
+  if (!friends || !friends.length) {
     box.innerHTML = '<div class="m-empty">暂无好友</div>';
     return;
   }
 
+  box.className = "m-friend-strip";
+
   box.innerHTML = friends
     .map(function (friend, index) {
       return (
-        '<div class="m-friend-item" data-friend-index="' + index + '">' +
-          '<img class="m-friend-avatar" src="' +
+        '<button type="button" class="m-friend-avatar-item" data-friend-index="' + index + '">' +
+          '<img class="m-friend-avatar-only" src="' +
             escapeHtml(friend.avatar || defaultAvatar(friend.studentId || friend.name)) +
           '">' +
-          '<div class="m-friend-info">' +
-            '<div class="m-friend-name">' +
-              escapeHtml(friend.forumId || friend.name || "好友") +
-            '</div>' +
-            '<div class="m-friend-desc">' +
-              escapeHtml(friend.signature || friend.studentId || "") +
-            '</div>' +
+          '<div class="m-friend-id-only">' +
+            escapeHtml(friend.forumId || friend.name || "好友") +
           '</div>' +
-        '</div>'
+        '</button>'
       );
     })
     .join("");
 
-  box.querySelectorAll(".m-friend-item").forEach(function (el) {
+  box.querySelectorAll(".m-friend-avatar-item").forEach(function (el) {
     el.addEventListener("click", function () {
       var index = Number(el.getAttribute("data-friend-index"));
       var friend = mFriendsCache[index];
@@ -3134,14 +3529,14 @@ function paintMobileChatList() {
     .map(function (chat, index) {
       return (
         '<div class="m-chat-item" data-chat-index="' + index + '">' +
-          '<img class="m-friend-avatar" src="' +
+          '<img class="m-chat-list-avatar" src="' +
             escapeHtml(chat.avatar || defaultAvatar(chat.studentId || chat.name)) +
           '">' +
-          '<div class="m-friend-info">' +
-            '<div class="m-friend-name">' +
+          '<div class="m-chat-list-info">' +
+            '<div class="m-chat-list-name">' +
               escapeHtml(chat.forumId || chat.name || "好友") +
             '</div>' +
-            '<div class="m-friend-desc">' +
+            '<div class="m-chat-list-preview">' +
               escapeHtml(getLastMessagePreview(chat)) +
             '</div>' +
           '</div>' +
@@ -3174,7 +3569,11 @@ function openMobileChat(contact) {
     return;
   }
 
-  pageHistory.push({ type: "message" });
+  // 避免重复点同一个人时，返回历史叠很多层
+  var last = pageHistory[pageHistory.length - 1];
+  if (!last || last.type !== "message") {
+    pageHistory.push({ type: "message" });
+  }
 
   currentChatContact = contact;
   var chat = ensureMobileChat(contact);
@@ -3182,8 +3581,8 @@ function openMobileChat(contact) {
 
   headerTitle.textContent = contact.forumId || contact.name || "聊天";
   showBackOnly();
-  hideRightButton();
   showChatBar();
+  showChatMenuButton(contact, chat);
 
   paintMobileChatPage(chat);
 
@@ -3199,14 +3598,78 @@ function openMobileChat(contact) {
         sendMobileChatMessage();
       }
     };
-    setTimeout(function () {
-      chatInput.focus();
-    }, 100);
   }
+}
+
+function showChatMenuButton(contact, chat) {
+  if (!themeToggleBtn) return;
+
+  themeToggleBtn.style.display = "flex";
+  themeToggleBtn.innerHTML =
+    '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">' +
+      '<circle cx="5" cy="12" r="2"></circle>' +
+      '<circle cx="12" cy="12" r="2"></circle>' +
+      '<circle cx="19" cy="12" r="2"></circle>' +
+    '</svg>';
+
+  themeToggleBtn.onclick = function () {
+    showMobileChatMenu(contact, chat);
+  };
+}
+
+function showMobileChatMenu(contact, chat) {
+  var old = document.getElementById("mChatMenuOverlay");
+  if (old) old.remove();
+
+  var overlay = document.createElement("div");
+  overlay.id = "mChatMenuOverlay";
+  overlay.className = "m-sheet-overlay";
+
+  overlay.innerHTML =
+    '<div class="m-comment-sheet">' +
+      '<button class="m-sheet-item" data-act="profile">查看主页</button>' +
+      '<button class="m-sheet-item" data-act="clear">清空聊天记录</button>' +
+      '<button class="m-sheet-item cancel" data-act="close">取消</button>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelectorAll(".m-sheet-item").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var act = btn.getAttribute("data-act");
+      overlay.remove();
+
+      if (act === "profile") {
+        var sid = contact.studentId || contact.code || "";
+        if (sid) renderMentionProfilePage(sid);
+      }
+
+      if (act === "clear") {
+        if (!confirm("确定清空和对方的聊天记录吗？")) return;
+        chat.messages = [];
+        chat.updatedAt = Date.now();
+        saveMobilePrivateChats();
+        paintMobileChatPage(chat);
+      }
+    });
+  });
+
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) overlay.remove();
+  });
 }
 
 function paintMobileChatPage(chat) {
   var messages = Array.isArray(chat.messages) ? chat.messages : [];
+
+  var myAvatar =
+    (currentAccount && currentAccount.avatar) ||
+    defaultAvatar((currentAccount && currentAccount.studentId) || "me");
+
+  var otherAvatar =
+    (currentChatContact && currentChatContact.avatar) ||
+    chat.avatar ||
+    defaultAvatar(chat.studentId || chat.name || "friend");
 
   content.innerHTML =
     '<div class="m-chat-page" id="mChatPage">' +
@@ -3214,14 +3677,7 @@ function paintMobileChatPage(chat) {
         (
           messages.length
             ? messages.map(function (msg) {
-                var side = msg.side === "me" ? "me" : "other";
-                return (
-                  '<div class="m-chat-bubble-row ' + side + '">' +
-                    '<div class="m-chat-bubble">' +
-                      escapeHtml(msg.text || msg.content || "") +
-                    '</div>' +
-                  '</div>'
-                );
+                return buildMobileChatBubbleHtml(msg, myAvatar, otherAvatar);
               }).join("")
             : '<div class="m-empty">还没有消息，先打个招呼吧</div>'
         ) +
@@ -3234,37 +3690,109 @@ function paintMobileChatPage(chat) {
   }
 }
 
-function appendMobileChatBubble(side, text) {
+function buildMobileChatBubbleHtml(msg, myAvatar, otherAvatar) {
+  var side = msg.side === "me" ? "me" : "other";
+  var avatar = side === "me" ? myAvatar : otherAvatar;
+  var timeText = formatChatTime(msg.createdAt || msg.time || Date.now());
+
+  return (
+    '<div class="m-chat-bubble-row ' + side + '">' +
+      (
+        side === "other"
+          ? '<img class="m-chat-msg-avatar" src="' + escapeHtml(avatar) + '">'
+          : ""
+      ) +
+      '<div class="m-chat-bubble-wrap">' +
+        '<div class="m-chat-bubble">' +
+          escapeHtml(msg.text || msg.content || "") +
+        '</div>' +
+        '<div class="m-chat-time">' +
+          escapeHtml(timeText) +
+        '</div>' +
+      '</div>' +
+      (
+        side === "me"
+          ? '<img class="m-chat-msg-avatar" src="' + escapeHtml(avatar) + '">'
+          : ""
+      ) +
+    '</div>'
+  );
+}
+
+function formatChatTime(t) {
+  var d = new Date(t);
+  if (isNaN(d.getTime())) return "";
+
+  var now = new Date();
+  var hh = String(d.getHours()).padStart(2, "0");
+  var mm = String(d.getMinutes()).padStart(2, "0");
+  var timePart = hh + ":" + mm;
+
+  var sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+
+  if (sameDay) return timePart;
+
+  var mon = String(d.getMonth() + 1).padStart(2, "0");
+  var day = String(d.getDate()).padStart(2, "0");
+  return mon + "-" + day + " " + timePart;
+}
+
+function appendMobileChatBubble(side, text, createdAt) {
   var box = document.getElementById("mChatMessages");
   if (!box) return;
 
   var empty = box.querySelector(".m-empty");
   if (empty) empty.remove();
 
-  var row = document.createElement("div");
-  row.className = "m-chat-bubble-row " + (side === "me" ? "me" : "other");
-  row.innerHTML =
-    '<div class="m-chat-bubble">' +
-      escapeHtml(text || "") +
-    '</div>';
+  var myAvatar =
+    (currentAccount && currentAccount.avatar) ||
+    defaultAvatar((currentAccount && currentAccount.studentId) || "me");
 
-  box.appendChild(row);
+  var otherAvatar =
+    (currentChatContact && currentChatContact.avatar) ||
+    defaultAvatar(
+      (currentChatContact && (currentChatContact.studentId || currentChatContact.name)) ||
+      "friend"
+    );
+
+  var temp = document.createElement("div");
+  temp.innerHTML = buildMobileChatBubbleHtml(
+    {
+      side: side,
+      text: text,
+      createdAt: createdAt || new Date().toISOString()
+    },
+    myAvatar,
+    otherAvatar
+  );
+
+  if (temp.firstChild) {
+    box.appendChild(temp.firstChild);
+  }
+
   box.scrollTop = box.scrollHeight;
 }
 
 function pushMobileChatMessage(chat, side, text) {
   if (!chat.messages) chat.messages = [];
 
+  var createdAt = new Date().toISOString();
+
   chat.messages.push({
     id: "msg-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
     side: side,
     text: text,
     content: text,
-    createdAt: new Date().toISOString()
+    createdAt: createdAt
   });
 
   chat.updatedAt = Date.now();
   saveMobilePrivateChats();
+
+  return createdAt;
 }
 
 async function handleMobileNormaCommand(text, chat) {
@@ -3275,29 +3803,29 @@ async function handleMobileNormaCommand(text, chat) {
     command === "/管理ip" ||
     command === "/位置管理"
   ) {
-    pushMobileChatMessage(chat, "me", command);
-    appendMobileChatBubble("me", command);
+    var tMe = pushMobileChatMessage(chat, "me", command);
+    appendMobileChatBubble("me", command, tMe);
 
     try {
       var res = await mFetch("/api/norma/can-manage");
 
       if (!res.ok || !res.data || !res.data.canManage) {
         var denyText = "权限不足。管理剧情位置需要拥有“管理组”身份组。";
-        pushMobileChatMessage(chat, "other", denyText);
-        appendMobileChatBubble("other", denyText);
+        var tDeny = pushMobileChatMessage(chat, "other", denyText);
+        appendMobileChatBubble("other", denyText, tDeny);
         return true;
       }
 
       var okText = "权限验证通过。已打开剧情位置管理面板。";
-      pushMobileChatMessage(chat, "other", okText);
-      appendMobileChatBubble("other", okText);
+      var tOk = pushMobileChatMessage(chat, "other", okText);
+      appendMobileChatBubble("other", okText, tOk);
 
       openMobileLocationManagePanel();
       return true;
     } catch (e) {
       var errText = "无法验证管理权限，请确认后端已启动。";
-      pushMobileChatMessage(chat, "other", errText);
-      appendMobileChatBubble("other", errText);
+      var tErr = pushMobileChatMessage(chat, "other", errText);
+      appendMobileChatBubble("other", errText, tErr);
       return true;
     }
   }
@@ -3326,7 +3854,6 @@ async function sendMobileChatMessage() {
   }
 
   try {
-    // 诺玛指令优先本地处理
     if (
       currentChatContact.accountKind === "norma_bot" ||
       String(currentChatContact.studentId || "").toUpperCase() === "AI000000"
@@ -3338,12 +3865,10 @@ async function sendMobileChatMessage() {
       }
     }
 
-    // 普通消息
-    pushMobileChatMessage(chat, "me", text);
-    appendMobileChatBubble("me", text);
+    var tMe = pushMobileChatMessage(chat, "me", text);
+    appendMobileChatBubble("me", text, tMe);
     if (chatInput) chatInput.value = "";
 
-    // 诺玛普通聊天
     if (
       currentChatContact.accountKind === "norma_bot" ||
       String(currentChatContact.studentId || "").toUpperCase() === "AI000000"
@@ -3361,7 +3886,6 @@ async function sendMobileChatMessage() {
         reply = (res.data && res.data.message) || "诺玛暂时无法回复。";
       }
 
-      // 支持诺玛一次回多条
       var parts = String(reply)
         .split("|||")
         .map(function (item) {
@@ -3372,8 +3896,8 @@ async function sendMobileChatMessage() {
       if (!parts.length) parts = [reply];
 
       parts.forEach(function (part) {
-        pushMobileChatMessage(chat, "other", part);
-        appendMobileChatBubble("other", part);
+        var tOther = pushMobileChatMessage(chat, "other", part);
+        appendMobileChatBubble("other", part, tOther);
       });
     }
   } catch (e) {
